@@ -1,6 +1,6 @@
 language: go
 go:
-  - 1.10rc2
+  - 1.10rc1
 
 if: tag IS present
 
@@ -12,7 +12,7 @@ install:
 script:
   - npm run build # compile frontend bundle
   - cd backend/cmd
-  - go build -ldflags="-s -w" -v -o dtlg-$TRAVIS_TAG-linux64
+  - GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o dtlg-$TRAVIS_TAG-linux64
   - GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -v -o dtlg-$TRAVIS_TAG-darwin64
   - GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -v -o dtlg-$TRAVIS_TAG-win64.exe
   - md5sum dtlg-$TRAVIS_TAG-linux64
