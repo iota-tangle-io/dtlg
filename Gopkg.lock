@@ -8,12 +8,6 @@
   revision = "963f1ddec552479fe8ad39ef4a50dda697d9626f"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/denisenkom/go-mssqldb"
-  packages = ["."]
-  revision = "ee492709d4324cdcb051d2ac266b77ddc380f5c5"
-
-[[projects]]
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
   revision = "dbeaa9332f19a944acb5736b4456cfcc02140e29"
@@ -35,11 +29,8 @@
   branch = "master"
   name = "github.com/globalsign/mgo"
   packages = [
-    ".",
     "bson",
-    "internal/json",
-    "internal/sasl",
-    "internal/scram"
+    "internal/json"
   ]
   revision = "896bbb89d21253a28cd5a7f8b81fe091410cb94d"
 
@@ -128,8 +119,7 @@
   name = "golang.org/x/crypto"
   packages = [
     "acme",
-    "acme/autocert",
-    "md4"
+    "acme/autocert"
   ]
   revision = "5119cf507ed5294cc409c092980c7497ee5d6fd2"
 
@@ -146,18 +136,6 @@
   version = "v2.13"
 
 [[projects]]
-  branch = "v2"
-  name = "gopkg.in/mgo.v2"
-  packages = [
-    ".",
-    "bson",
-    "internal/json",
-    "internal/sasl",
-    "internal/scram"
-  ]
-  revision = "3f83fa5005286a7fe593b055f0d7771a7dce4655"
-
-[[projects]]
   branch = "master"
   name = "leb.io/hashland"
   packages = ["keccakpg"]
@@ -166,6 +144,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "312a89d66ff4f92875e095a8bf49ccc3acd98cec8aa28dbbb3693c5eee30af1e"
+  inputs-digest = "9089cc5e429cb0b0a462b68903a8ba7ae97df9f842c42c7ac10fc5cd2757e60a"
   solver-name = "gps-cdcl"
   solver-version = 1

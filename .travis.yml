@@ -22,11 +22,13 @@ script:
   - ls
   - cd ../.. #change back to root
   - mkdir -p dest-win64/spa/js
+  - mkdir -p dest-win64/spa/html
   - mkdir -p dest-win64/spa/css
   - mkdir -p dest-win64/spa/img
   - mkdir -p dest-win64/configs
   - cp ./frontend/js/bundle.min.js ./dest-win64/spa/js
   - cp -r ./frontend/css/* ./dest-win64/spa/css
+  - cp -r ./frontend/html/* ./dest-win64/spa/html
   - cp -r ./frontend/img/* ./dest-win64/spa/img
   - cp -r ./backend/cmd/dtlg-$TRAVIS_TAG-win64.exe ./dest-win64
   - cp -r ./prod_network.json ./dest-win64/configs/network.json

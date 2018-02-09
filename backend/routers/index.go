@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
-	"gopkg.in/mgo.v2"
 	"net/http"
 	"github.com/iota-tangle-io/dtlg/backend/controllers"
 )
@@ -64,11 +63,6 @@ func (indexRouter *IndexRouter) Init() {
 		case ErrInternalServer:
 			statusCode = http.StatusInternalServerError
 			message = "internal server error"
-
-			// 404 not found
-		case mgo.ErrNotFound:
-			statusCode = http.StatusNotFound
-			message = "not found"
 
 			// 400 bad request
 		case controllers.ErrInvalidObjectId:

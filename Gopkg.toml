@@ -31,10 +31,6 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/denisenkom/go-mssqldb"
-
-[[constraint]]
-  branch = "master"
   name = "github.com/facebookgo/inject"
 
 [[constraint]]
@@ -68,10 +64,6 @@
 [[constraint]]
   name = "gopkg.in/inconshreveable/log15.v2"
   version = "2.13.0"
-
-[[constraint]]
-  branch = "v2"
-  name = "gopkg.in/mgo.v2"
 
 [prune]
   go-tests = true

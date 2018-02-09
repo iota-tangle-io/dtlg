@@ -5,11 +5,9 @@ import (
 	"github.com/iota-tangle-io/dtlg/backend/routers"
 	"github.com/iota-tangle-io/dtlg/backend/utilities"
 	"fmt"
-	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/facebookgo/inject"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"github.com/globalsign/mgo"
 	"html/template"
 	"io"
 	"os"
@@ -30,7 +28,6 @@ func (t *TemplateRendered) Render(w io.Writer, name string, data interface{}, c 
 type Server struct {
 	Config    *Configuration
 	WebEngine *echo.Echo
-	Mongo     *mgo.Session
 }
 
 func (server *Server) Start() {
