@@ -59,7 +59,7 @@ script:
   - cp -r ./backend/cmd/dtlg-$TRAVIS_TAG-darwin64 ./dest-darwin64
   - cp -r ./prod_network.json ./dest-darwin64/configs/network.json
   - cp -r ./prod_app.json ./dest-darwin64/configs/app.json
-  - zip -r dtlg-$TRAVIS_TAG-darwin64.zip dest-linux64
+  - zip -r dtlg-$TRAVIS_TAG-darwin64.zip dest-darwin64
 
 deploy:
   provider: releases

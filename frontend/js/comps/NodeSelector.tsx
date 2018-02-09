@@ -34,6 +34,9 @@ const styles: StyleRulesCallback = (theme: Theme) => ({
     formControl: {
 
     },
+    textField: {
+      width: 300
+    },
     nodeSelect: {
         width: 'auto',
     },
@@ -51,6 +54,11 @@ class nodeselector extends React.Component<Props & WithStyles, {}> {
         this.props.spammerStore.changeNode(e.target.value);
     }
 
+    updateNode = (e: any) => {
+        if (e.key !== 'Enter') return true;
+        this.props.spammerStore.updateNode();
+    }
+
     render() {
         let classes = this.props.classes;
         let {node, disable_controls} = this.props.spammerStore;
@@ -62,6 +70,7 @@ class nodeselector extends React.Component<Props & WithStyles, {}> {
                     className={classes.textField}
                     value={node}
                     onChange={this.changeNode}
+                    onKeyDown={this.updateNode}
                     margin="normal"
                 />
                 <FormHelperText>Remote IRI Node</FormHelperText>

@@ -144,12 +144,16 @@ export class SpammerStore {
     }
 
     @action
-    changeNode(nodeURL: string) {
-        if (!this.connected) return;
+    changeNode(nodeURL: string){
         this.node = nodeURL;
+    }
+
+    @action
+    updateNode() {
+        if (!this.connected) return;
         let msg = new WsMsg();
         msg.msg_type = MsgType.CHANGE_NODE;
-        msg.data = nodeURL;
+        msg.data = this.node;
         this.disable_controls = true;
         this.ws.send(JSON.stringify(msg));
     }

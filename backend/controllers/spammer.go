@@ -48,7 +48,7 @@ func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
 	// configure PoW
 	_, pow := giota.GetBestPoW()
 	spammer.UpdateSettings(spamalot.WithPoW(pow))
-	spammer.UpdateSettings(spamalot.WithNode(ctrl.nodeURL, true))
+	spammer.UpdateSettings(spamalot.WithNode(ctrl.nodeURL, false))
 	return spammer
 }
 
