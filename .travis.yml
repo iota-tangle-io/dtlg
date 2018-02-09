@@ -1,0 +1,25 @@
+language: go
+go:
+  - 1.10rc2
+
+sudo: required
+
+services:
+  - docker
+
+install:
+  - npm i
+  - npm i -g webpack@3.9.1
+  - npm i -g typescript@2.6.2
+
+script:
+  - npm run build # compile frontend bundle
+  - cd backend/cmd
+  - go get -t ./...
+  - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -v -o dtlg # compile backend app
+
+after_script:
+  - cd ../.. #change back too root
+  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+  - docker build -t iotatangleio/spamalot-slave:latest .
+  - docker push iotatangleio/spamalot-slave:latest

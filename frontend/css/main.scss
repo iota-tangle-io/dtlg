@@ -1,0 +1,157 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+
+$pastal_red: #FF5A5F;
+$opera_mauve: #C1839F;
+$blue_sapphire: #16638C;
+$very_light_tangelo: #FFB472;
+$white_smoke: #F4F4F4;
+
+$blue_jeans: #5BC0EB;
+$yankees_blue: #153243;
+$dark_slate_gray: #284B63;
+$isabelline: #F4F9E9;
+$portland_orange: #F46036;
+$gunmetal: #283044;
+
+body {
+  box-sizing: border-box !important;
+  font-family: 'Roboto', 'Helvetica', sans-serif;
+  font-size: 14px;
+  overflow-y:scroll;
+}
+
+.datePickerBox {
+  margin-bottom: 10px;
+}
+
+.datePickerBox > div {
+  display: inline !important;
+  margin-right: 10px;
+}
+
+h1,h2,h3 {
+  font-weight: normal;
+}
+
+.mainContainer {
+  padding: 10px;
+}
+
+.customDateInput {
+  padding: 7px;
+  background: white;
+  outline: none;
+  border: 1px solid black;
+
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+a {
+  text-decoration: none;
+}
+
+.errorCodeChartTooltip {
+  padding: 5px;
+  background: white;
+  color: black;
+}
+
+.container {
+  position: absolute;
+  width: 100%;
+  padding-left: 100px;
+  padding-right: 100px;
+  box-sizing: border-box;
+}
+
+.nav {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  color: $white_smoke;
+  background: $yankees_blue;
+
+  .site_title {
+    position: absolute;
+    height: 60px;
+    line-height: 60px;
+    left: 30px;
+    font-size: 18px;
+  }
+
+  .nav_menu {
+    position: absolute;
+    left: 200px;
+    top: 0px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    li {
+      float: left;
+      text-align: center;
+      width: auto;
+      padding-left: 10px;
+      padding-right: 10px;
+      height: 60px;
+      line-height: 60px;
+      color: $white_smoke;
+
+      &:hover {
+        cursor: pointer;
+        transition: 0.1s;
+        color: $white_smoke;
+        background: lighten($yankees_blue, 20%);
+      }
+    }
+  }
+}
+
+.icon_margin_right{
+  margin-right: 10px;
+}
+
+.button_loader {
+  margin-left: 10px;
+}
+
+$midnight_dark: #323e4a;
+
+@keyframes log_entry_ani {
+  from {
+    opacity: 0;
+    top: -40px;
+  }
+  to{
+    top: 0px;
+    opacity: 1;
+  }
+}
+
+.tx_log {
+  padding: 10px;
+  background: $midnight_dark;
+  height: 400px;
+  overflow-y: scroll;
+  .log_link{
+    color: orange;
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+  .log_entry{
+    position: relative;
+    animation: log_entry_ani 0.6s;
+    color: #27da9f;
+    display: block;
+    margin-bottom: 5px;
+    background:  darken($midnight_dark, 10%);
+    padding: 5px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+  }
+}
