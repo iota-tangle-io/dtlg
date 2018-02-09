@@ -13,7 +13,7 @@ import (
 	"os"
 	"time"
 	"context"
-	//"github.com/skratchdot/open-golang/open"
+	"github.com/skratchdot/open-golang/open"
 )
 
 type TemplateRendered struct {
@@ -128,7 +128,7 @@ func (server *Server) Start() {
 	go e.Start(httpConfig.Address)
 
 
-	//open.Start("http://localhost:9090")
+	open.Start("http://localhost:9090")
 
 	// finish
 	delta := (time.Now().UnixNano() - start) / 1000000
