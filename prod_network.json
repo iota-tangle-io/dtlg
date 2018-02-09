@@ -3,9 +3,9 @@
     "domain": "localhost",
     "address": "0.0.0.0:9090",
     "assets": {
-      "static": "./frontend",
-      "favicon": "./frontend/img/favicon.ico",
-      "html": "./frontend/html"
+      "static": "./spa",
+      "favicon": "./spa/img/favicon.ico",
+      "html": "./spa/html"
     },
     "logRequests": false
   }

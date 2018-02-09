@@ -15,11 +15,27 @@ install:
 script:
   - npm run build # compile frontend bundle
   - cd backend/cmd
-  - go get -t ./...
-  - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -v -o dtlg # compile backend app
+  - go get -t ./... # go into backend
+  - GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -v -o dtlg-$TRAVIS_TAG-win64.exe
+  - ls
+  - cd ../.. #change back to root
+  - mkdir -p dest-win64/spa/js
+  - mkdir -p dest-win64/spa/css
+  - mkdir -p dest-win64/spa/img
+  - mkdir -p dest-win64/configs
+  - copy ./frontend/js/bundle.min.js ./dest-win64/spa/js
+  - copy -r ./frontend/css/* ./dest-win64/spa/css
+  - copy -r ./frontend/img/* ./dest-win64/spa/img
+  - copy -r ./backend/cmd/dtlg-$TRAVIS_TAG-win64.exe ./dest-win64
+  - copy -r ./prod_network.json ./dest-win64/configs/network.json
+  - copy -r ./prod_app.json ./dest-win64/configs/app.json
+  - zip -r dtlg-$TRAVIS_TAG-win64.zip dest-win64
 
-after_script:
-  - cd ../.. #change back too root
-  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-  - docker build -t iotatangleio/spamalot-slave:latest .
-  - docker push iotatangleio/spamalot-slave:latest
+deploy:
+  provider: releases
+  api_key: $GITHUB_OAUTH_TOKEN
+  file:
+    - dtlg-$TRAVIS_TAG-win64.zip
+  skip_cleanup: true
+  on:
+    tags: true

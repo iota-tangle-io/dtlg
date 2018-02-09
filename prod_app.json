@@ -1,5 +1,5 @@
 {
   "name": "dtlg",
-  "dev": true,
+  "dev": false,
   "verbose": true
 }
