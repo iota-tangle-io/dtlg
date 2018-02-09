@@ -1,0 +1,20 @@
+language: go
+go:
+  - 1.9.3
+
+sudo: required
+
+services:
+  - docker
+
+script:
+  - cd cmd/spamalot
+  - go get -t ./...
+  - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -v -o spamalot # compile app
+  - ls
+
+after_script:
+  - cd ../.. #change back to root
+  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+  - docker build -t iotatangleio/spamalot:latest .
+  - docker push iotatangleio/spamalot:latest

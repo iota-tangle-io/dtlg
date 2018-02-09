@@ -17,7 +17,6 @@ install:
 script:
   - npm run build # compile frontend bundle
   - cd backend/cmd
-  - go get -t ./... # go into backend
   - GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -v -o dtlg-$TRAVIS_TAG-win64.exe
   - md5sum dtlg-$TRAVIS_TAG-win64.exe
   - ls
