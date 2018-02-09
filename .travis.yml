@@ -2,6 +2,8 @@ language: go
 go:
   - 1.10rc2
 
+if: tag IS present
+
 sudo: required
 
 services:
