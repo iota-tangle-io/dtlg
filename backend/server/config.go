@@ -45,16 +45,17 @@ type Configuration struct {
 }
 
 type AppConfig struct {
-	Location interface{} `loc:"./configs/app.json"`
-	Name     string
-	Dev      bool
-	Verbose  bool
+	Location        interface{} `loc:"./configs/app.json"`
+	Name            string
+	Dev             bool
+	AutoOpenBrowser bool
+	Verbose         bool
 }
 
 type NetConfig struct {
-	Location     interface{} `loc:"./configs/network.json"`
-	HTTP         WebConfig
-	Coordinator  CoordinatorConfig
+	Location    interface{} `loc:"./configs/network.json"`
+	HTTP        WebConfig
+	Coordinator CoordinatorConfig
 }
 
 type WebConfig struct {

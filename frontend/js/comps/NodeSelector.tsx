@@ -14,6 +14,8 @@ import {FormControl, FormHelperText} from 'material-ui/Form';
 import {MenuItem} from 'material-ui/Menu';
 import {WithStyles, TextField} from "material-ui";
 import withStyles from "material-ui/styles/withStyles";
+import {CircularProgress} from 'material-ui/Progress';
+
 
 interface Props {
     spammerStore?: SpammerStore;
@@ -31,11 +33,9 @@ const styles: StyleRulesCallback = (theme: Theme) => ({
         flexGrow: 1,
         marginTop: theme.spacing.unit * 2,
     },
-    formControl: {
-
-    },
+    formControl: {},
     textField: {
-      width: 300
+        width: 300
     },
     nodeSelect: {
         width: 'auto',
@@ -61,10 +61,11 @@ class nodeselector extends React.Component<Props & WithStyles, {}> {
 
     render() {
         let classes = this.props.classes;
-        let {node, disable_controls} = this.props.spammerStore;
+        let {node, disable_controls, updating_node, node_updated} = this.props.spammerStore;
         return (
             <FormControl className={classes.formControl}>
                 <TextField
+                    disabled={updating_node}
                     id="name"
                     label="Node"
                     className={classes.textField}
@@ -73,7 +74,18 @@ class nodeselector extends React.Component<Props & WithStyles, {}> {
                     onKeyDown={this.updateNode}
                     margin="normal"
                 />
-                <FormHelperText>Remote IRI Node</FormHelperText>
+                <FormHelperText>
+                    {
+                        node_updated ?
+                            "Node updated."
+                            :
+                            updating_node ?
+                                <span>
+                                    Updating...<CircularProgress className="button_loader" size={10}/>
+                                </span>
+                                : "Hit enter to save."
+                    }
+                </FormHelperText>
             </FormControl>
         );
     }

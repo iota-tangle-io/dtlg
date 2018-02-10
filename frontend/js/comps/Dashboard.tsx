@@ -19,6 +19,7 @@ import {FormControl, FormHelperText} from 'material-ui/Form';
 import {MenuItem} from 'material-ui/Menu';
 import {NodeSelector} from "./NodeSelector";
 import {CircularProgress} from 'material-ui/Progress';
+import {NodeEnterModal} from "./NodeEnterModal";
 
 interface Props {
     spammerStore: SpammerStore;
@@ -95,6 +96,9 @@ class dashboard extends React.Component<Props & WithStyles, {}> {
                 <h1>Dashboard</h1>
                 <Grid container className={classes.root}>
                     <Grid item xs={12} lg={12}>
+
+                        <NodeEnterModal/>
+
                         <Button className={classes.button} onClick={this.start}
                                 disabled={running || disable_controls} variant="raised"
                         >

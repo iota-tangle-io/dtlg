@@ -127,8 +127,9 @@ func (server *Server) Start() {
 	// boot up server
 	go e.Start(httpConfig.Address)
 
-
-	open.Start("http://localhost:9090")
+	if configuration.App.AutoOpenBrowser {
+		open.Start("http://localhost:9090")
+	}
 
 	// finish
 	delta := (time.Now().UnixNano() - start) / 1000000

@@ -1,5 +1,6 @@
 {
   "name": "dtlg",
   "dev": false,
+  "autoOpenBrowser": true,
   "verbose": true
 }

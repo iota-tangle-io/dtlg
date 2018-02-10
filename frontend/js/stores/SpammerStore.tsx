@@ -63,11 +63,19 @@ export class SpammerStore {
     @observable metrics: ObservableMap<Metric> = observable.map();
     @observable txs: ObservableMap<Metric> = observable.map();
     @observable last_metric: MetricSummary = new MetricSummary();
-    @observable node: string = "";
     @observable disable_controls: boolean = false;
     @observable starting: boolean = false;
     @observable stopping: boolean = false;
     @observable previous_state: StateMsg = new StateMsg();
+    @observable enter_node_modal_open: boolean = false;
+
+    @observable node: string = "";
+    @observable node_valid: boolean = false;
+    @observable updating_node: boolean = false;
+    @observable node_updated: boolean = false;
+    first_node_update_done: boolean = false;
+    url_regex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/gi;
+
     ws: WebSocket = null;
     nextMetricID: number = 0;
 
@@ -118,9 +126,24 @@ export class SpammerStore {
                             this.starting = false;
                             this.stopping = false;
                         }
-                        if (this.previous_state.node != stateMsg.node) {
+                        if (this.previous_state.node !== stateMsg.node) {
                             this.disable_controls = false;
+                            this.updating_node = false;
+                            this.node_updated = true;
                         }
+
+                        if (!this.node && stateMsg.node && !this.first_node_update_done) {
+                            this.node = stateMsg.node;
+                            this.first_node_update_done = true;
+                        }
+
+                        if (!stateMsg.node) {
+                            this.disable_controls = true;
+                            this.enter_node_modal_open = true;
+                        } else {
+                            this.enter_node_modal_open = false;
+                        }
+
                         this.previous_state = stateMsg;
                         this.running = stateMsg.running;
                     });
@@ -144,8 +167,16 @@ export class SpammerStore {
     }
 
     @action
-    changeNode(nodeURL: string){
+    closeEnterNodeModal() {
+        this.enter_node_modal_open = false;
+        this.updateNode();
+    }
+
+    @action
+    changeNode(nodeURL: string) {
         this.node = nodeURL;
+        this.node_updated = false;
+        this.node_valid = this.node.match(this.url_regex) ? true : false;
     }
 
     @action
@@ -155,6 +186,7 @@ export class SpammerStore {
         msg.msg_type = MsgType.CHANGE_NODE;
         msg.data = this.node;
         this.disable_controls = true;
+        this.updating_node = true;
         this.ws.send(JSON.stringify(msg));
     }
 

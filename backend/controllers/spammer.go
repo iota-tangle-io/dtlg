@@ -53,7 +53,7 @@ func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
 }
 
 func (ctrl *SpammerCtrl) Init() error {
-	ctrl.nodeURL = "http://nodes.iota.fm:80"
+	ctrl.nodeURL = ""
 	ctrl.metrics = make(chan spamalot.Metric)
 	ctrl.listeners = map[int]chan interface{}{}
 
@@ -115,7 +115,7 @@ func (ctrl *SpammerCtrl) ChangeNode(node string) {
 	ctrl.spammer = ctrl.createSpammer()
 	if wasRunning {
 		go ctrl.spammer.Start()
-		<-time.After(time.Duration(1)*time.Second)
+		<-time.After(time.Duration(1) * time.Second)
 	}
 }
 
