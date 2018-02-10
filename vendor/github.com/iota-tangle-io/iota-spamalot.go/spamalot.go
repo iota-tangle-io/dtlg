@@ -26,7 +26,6 @@ SOFTWARE.
 package spamalot
 
 import (
-	"errors"
 	"log"
 	"math/rand"
 	"strings"
@@ -34,6 +33,10 @@ import (
 	"time"
 
 	"github.com/CWarner818/giota"
+)
+
+const (
+	maxTimestampTrytes = "L99999999"
 )
 
 type Node struct {
@@ -59,10 +62,6 @@ type Spammer struct {
 	destAddress string
 	tag         string
 	message     string
-
-	filterTrunk     bool
-	filterBranch    bool
-	filterMilestone bool
 
 	remotePoW bool
 
@@ -153,24 +152,6 @@ func ToAddress(addr string) Option {
 func WithPoW(pow giota.PowFunc) Option {
 	return func(s *Spammer) error {
 		s.pow = pow
-		return nil
-	}
-}
-func FilterTrunk(filter bool) Option {
-	return func(s *Spammer) error {
-		s.filterTrunk = filter
-		return nil
-	}
-}
-func FilterBranch(filter bool) Option {
-	return func(s *Spammer) error {
-		s.filterBranch = filter
-		return nil
-	}
-}
-func FilterMilestone(filter bool) Option {
-	return func(s *Spammer) error {
-		s.filterMilestone = filter
 		return nil
 	}
 }
@@ -272,8 +253,8 @@ func (s *Spammer) Start() {
 
 	log.Println("Using IRI nodes:", s.nodes)
 
-	s.txsChan = make(chan Transaction, 50)
-	s.tipsChan = make(chan Tips, 50)
+	s.txsChan = make(chan Transaction)
+	s.tipsChan = make(chan Tips)
 	s.stopSignal = make(chan struct{})
 	s.metrics = newMetricsRouter()
 
@@ -320,13 +301,21 @@ func (s *Spammer) Start() {
 
 	// iterate randomly over available nodes and create
 	// shallow txs to send to workers for processing
+	type apiandnode struct {
+		API *giota.API
+		URL string
+	}
+	nodeAPIs := []apiandnode{}
+	for _, node := range s.nodes {
+		nodeAPIs = append(nodeAPIs, apiandnode{giota.NewAPI(node.URL, nil), node.URL})
+	}
 	for {
 		select {
 		case <-s.stopSignal:
 			return
 		default:
-			node := s.nodes[rand.Intn(len(s.nodes))]
-			api := giota.NewAPI(node.URL, nil)
+			tuple := nodeAPIs[rand.Intn(len(s.nodes))]
+			api := tuple.API
 			bdl, err = giota.PrepareTransfers(api, seed, trs, nil, "", int(s.securityLvl))
 			if err != nil {
 				s.metrics.addMetric(INC_FAILED_TX, nil)
@@ -337,7 +326,7 @@ func (s *Spammer) Start() {
 			txns, err := s.buildTransactions(bdl, s.pow)
 			if err != nil {
 				s.metrics.addMetric(INC_FAILED_TX, nil)
-				s.logIfVerbose("Error building txn", node.URL, err)
+				s.logIfVerbose("Error building txn", tuple.URL, err)
 				continue
 			}
 
@@ -656,32 +645,18 @@ func (s *Spammer) buildTransactions(trytes []giota.Transaction, pow giota.PowFun
 
 		if strings.Contains(string(tips.Trunk.Address), milestoneAddr) {
 			s.metrics.addMetric(INC_MILESTONE_TRUNK, nil)
-			if s.filterMilestone {
-				return nil, errors.New("Trunk txn is a milestone")
-			}
 
 		} else if strings.Contains(string(tips.Branch.Address), milestoneAddr) {
 			s.metrics.addMetric(INC_MILESTONE_BRANCH, nil)
-			if s.filterMilestone {
-				return nil, errors.New("Branch txn is a milestone")
-			}
 		}
 
 		if bothAreBad {
 			s.metrics.addMetric(INC_BAD_TRUNK_AND_BRANCH, nil)
-			if s.filterTrunk || s.filterBranch {
-				return nil, errors.New("Trunk and branch txn tag is ours")
-			}
 		} else if trunkIsBad {
 			s.metrics.addMetric(INC_BAD_TRUNK, nil)
-			if s.filterTrunk {
-				return nil, errors.New("Trunk txn tag is ours")
-			}
+
 		} else if branchIsBad {
 			s.metrics.addMetric(INC_BAD_BRANCH, nil)
-			if s.filterBranch {
-				return nil, errors.New("Branch txn tag is ours")
-			}
 		}
 
 		return &Transaction{
@@ -706,7 +681,12 @@ func doPow(tra *Transaction, depth int64, trytes []giota.Transaction, mwm int64,
 			trytes[i].BranchTransaction = tra.Trunk
 		}
 
+		timestamp := giota.Int2Trits(time.Now().UnixNano()/1000000, giota.TimestampTrinarySize).Trytes()
+		trytes[i].AttachmentTimestamp = timestamp
+		trytes[i].AttachmentTimestampLowerBound = ""
+		trytes[i].AttachmentTimestampUpperBound = maxTimestampTrytes
 		trytes[i].Nonce, err = pow(trytes[i].Trytes(), int(mwm))
+
 		if err != nil {
 			return err
 		}

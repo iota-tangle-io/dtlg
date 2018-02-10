@@ -41,7 +41,8 @@
     "react-router-dom": "^4.2.2",
     "recharts": "^1.0.0-beta.10",
     "semantic-ui-react": "^0.77.2",
-    "tslib": "^1.9.0"
+    "tslib": "^1.9.0",
+    "valid-url": "^1.0.9"
   },
   "devDependencies": {
     "@types/react": "^16.0.36",

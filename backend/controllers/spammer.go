@@ -5,11 +5,13 @@ import (
 	"github.com/CWarner818/giota"
 	"sync"
 	"time"
+	"math/rand"
 )
 
-const NirvanaAddress = "999999999999999999999999999999999999999999999999999999999999999999999999999999999"
 const DefaultMessage = "GOSPAMMER9SPAMALOT"
 const DefaultTag = "999SPAMALOT"
+
+var alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9"
 
 type StatusMsg struct {
 	Running bool   `json:"running"`
@@ -31,16 +33,17 @@ type SpammerCtrl struct {
 }
 
 func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
+	var address string
+	for i := 0; i < 81; i++ {
+		address += string(alphabet[rand.Intn(len(alphabet))])
+	}
 	spammer, _ := spamalot.New(
 		spamalot.WithMWM(int64(14)),
 		spamalot.WithDepth(giota.Depth),
-		spamalot.ToAddress(NirvanaAddress),
+		spamalot.ToAddress(address),
 		spamalot.WithTag(DefaultTag),
 		spamalot.WithMessage(DefaultMessage),
 		spamalot.WithSecurityLevel(spamalot.SecurityLevel(2)),
-		spamalot.FilterTrunk(false),
-		spamalot.FilterBranch(false),
-		spamalot.FilterMilestone(false),
 		spamalot.WithMetricsRelay(ctrl.metrics),
 		spamalot.WithStrategy(""),
 	)

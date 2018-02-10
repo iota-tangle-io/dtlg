@@ -1,6 +1,7 @@
 ///<reference path="../../../node_modules/mobx/lib/api/computed.d.ts"/>
 import {action, computed, observable, ObservableMap, runInAction} from "mobx";
 import dateformat from 'dateformat';
+import validUrl from 'valid-url';
 
 let MsgType = {
     START: 1,
@@ -74,7 +75,6 @@ export class SpammerStore {
     @observable updating_node: boolean = false;
     @observable node_updated: boolean = false;
     first_node_update_done: boolean = false;
-    url_regex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/gi;
 
     ws: WebSocket = null;
     nextMetricID: number = 0;
@@ -176,7 +176,7 @@ export class SpammerStore {
     changeNode(nodeURL: string) {
         this.node = nodeURL;
         this.node_updated = false;
-        this.node_valid = this.node.match(this.url_regex) ? true : false;
+        this.node_valid = validUrl.isWebUri(this.node) ? true : false;
     }
 
     @action

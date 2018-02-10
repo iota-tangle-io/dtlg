@@ -68,7 +68,6 @@ class nodeentermodel extends React.Component<Props & WithStyles, {}> {
                         margin="dense"
                         id="name"
                         label="IRI Node Address"
-                        type="email"
                         value={node}
                         onChange={this.handleNodeChange}
                         fullWidth
