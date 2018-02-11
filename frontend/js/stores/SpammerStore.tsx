@@ -36,6 +36,7 @@ let MetricType = {
 export class TXData {
     hash: string;
     count: number;
+    node: string;
     created_on: Date;
 }
 
@@ -114,22 +115,32 @@ export class SpammerStore {
                 case MsgType.STATE:
                     let stateMsg: StateMsg = obj.data;
                     runInAction('update state', () => {
+
                         // unblock after start/stop happened
                         if (this.running !== stateMsg.running) {
                             this.disable_controls = false;
                         }
+
+                        // stopping successful
                         if (this.running && !stateMsg.running) {
                             this.stopping = false;
                             this.starting = false;
                         }
+
+                        // starting successful
                         if (!this.running && stateMsg.running) {
                             this.starting = false;
                             this.stopping = false;
                         }
+
+                        // last state had no node but new one does, therefore enable controls
                         if (this.previous_state.node !== stateMsg.node) {
                             this.disable_controls = false;
                             this.updating_node = false;
-                            this.node_updated = true;
+                            if(this.previous_state.node){
+                                this.node_updated = true;
+                            }
+                            this.node_valid = true;
                         }
 
                         if (!this.node && stateMsg.node && !this.first_node_update_done) {
@@ -185,6 +196,7 @@ export class SpammerStore {
         let msg = new WsMsg();
         msg.msg_type = MsgType.CHANGE_NODE;
         msg.data = this.node;
+        if(this.previous_state.node === this.node || !this.node_valid) return;
         this.disable_controls = true;
         this.updating_node = true;
         this.ws.send(JSON.stringify(msg));

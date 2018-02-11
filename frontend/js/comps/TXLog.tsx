@@ -47,6 +47,7 @@ class TX extends React.Component<{ tx: TXData }, {}> {
                     <i className="fas fa-external-link-alt log_link"></i>
                 </a>
               |{' '}{tx.hash}
+              {' '} via {tx.node}
           </span>
         );
     }

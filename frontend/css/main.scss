@@ -120,6 +120,14 @@ a {
 
 $midnight_dark: #323e4a;
 
+.start_stop_snackbar {
+  color: white;
+}
+
+.start_stop_loader{
+  color: #ff7f50;
+}
+
 @keyframes log_entry_ani {
   from {
     opacity: 0;
@@ -130,6 +138,7 @@ $midnight_dark: #323e4a;
     opacity: 1;
   }
 }
+
 
 .tx_log {
   padding: 10px;

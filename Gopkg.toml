@@ -42,7 +42,7 @@
   version = "1.2.0"
 
 [[constraint]]
-  revision = "50f730eb74e3dcf88939cd8580060d5e09d70417"
+  revision = "d3950d973f5c6336061e754476e995c50837a2b3"
   name = "github.com/iota-tangle-io/iota-spamalot.go"
 
 [[constraint]]

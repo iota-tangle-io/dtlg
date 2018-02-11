@@ -297,6 +297,7 @@ func (s *Spammer) Start() {
 		log.Println("Waiting for workers to terminate...")
 		s.wg.Wait()
 		s.running = false
+		log.Println("Spammer terminated")
 	}()
 
 	// iterate randomly over available nodes and create

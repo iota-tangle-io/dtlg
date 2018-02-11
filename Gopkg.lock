@@ -49,7 +49,7 @@
 [[projects]]
   name = "github.com/iota-tangle-io/iota-spamalot.go"
   packages = ["."]
-  revision = "50f730eb74e3dcf88939cd8580060d5e09d70417"
+  revision = "d3950d973f5c6336061e754476e995c50837a2b3"
 
 [[projects]]
   branch = "master"
@@ -143,6 +143,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "384cd89c4e097b0f1191de6c86cfa8ac0e71e262e7e8049e1041fa0c320e5d9b"
+  inputs-digest = "b268601a7236e28124e941388c80a17ebbf54db00ad11eca4eff66dca76478ab"
   solver-name = "gps-cdcl"
   solver-version = 1

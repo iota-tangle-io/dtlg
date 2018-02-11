@@ -61,7 +61,7 @@ class nodeselector extends React.Component<Props & WithStyles, {}> {
 
     render() {
         let classes = this.props.classes;
-        let {node, disable_controls, updating_node, node_updated} = this.props.spammerStore;
+        let {node, disable_controls, updating_node, node_updated, node_valid} = this.props.spammerStore;
         return (
             <FormControl className={classes.formControl}>
                 <TextField
@@ -74,7 +74,7 @@ class nodeselector extends React.Component<Props & WithStyles, {}> {
                     onKeyDown={this.updateNode}
                     margin="normal"
                 />
-                <FormHelperText>
+                <FormHelperText error={!node_valid}>
                     {
                         node_updated ?
                             "Node updated."
@@ -83,7 +83,12 @@ class nodeselector extends React.Component<Props & WithStyles, {}> {
                                 <span>
                                     Updating...<CircularProgress className="button_loader" size={10}/>
                                 </span>
-                                : "Hit enter to save."
+                                :
+                                node_valid ?
+                                    "Hit enter to save."
+                                    :
+                                    "Node URL not valid!"
+
                     }
                 </FormHelperText>
             </FormControl>

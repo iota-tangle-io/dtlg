@@ -63,6 +63,7 @@ type Summary struct {
 type TXData struct {
 	Hash  giota.Trytes `json:"hash"`
 	Count int          `json:"count"`
+	Node  string       `json:"node"`
 }
 
 type txandnode struct {
@@ -162,15 +163,15 @@ func (mr *metricsrouter) printMetrics(txAndNode txandnode) {
 	// send current state of the spammer
 	if mr.relay != nil {
 		summary := Summary{
-			TXsSucceeded: mr.txsSucceeded, TXsFailed: mr.txsFailed,
-			BadBranch: mr.badBranch, BadTrunk: mr.badBranch, BadTrunkAndBranch: mr.badTrunkAndBranch,
+			TXsSucceeded:   mr.txsSucceeded, TXsFailed: mr.txsFailed,
+			BadBranch:      mr.badBranch, BadTrunk: mr.badBranch, BadTrunkAndBranch: mr.badTrunkAndBranch,
 			MilestoneTrunk: mr.milestoneTrunk, MilestoneBranch: mr.milestoneBranch,
-			TPS: tps, ErrorRate: 100 - successRate,
+			TPS:            tps, ErrorRate: 100 - successRate,
 		}
 		mr.relay <- Metric{Kind: SUMMARY, Data: summary}
 
 		// send tx
-		txData := TXData{Hash: hash, Count: len(tx.Transactions)}
+		txData := TXData{Hash: hash, Count: len(tx.Transactions), Node: node.URL}
 		mr.relay <- Metric{Kind: INC_SUCCESSFUL_TX, Data: txData}
 	}
 

@@ -18,8 +18,12 @@ import Input, {InputLabel} from 'material-ui/Input';
 import {FormControl, FormHelperText} from 'material-ui/Form';
 import {MenuItem} from 'material-ui/Menu';
 import {NodeSelector} from "./NodeSelector";
+import {SnackbarContent} from 'material-ui/Snackbar';
+import Snackbar from 'material-ui/Snackbar';
+
 import {CircularProgress} from 'material-ui/Progress';
 import {NodeEnterModal} from "./NodeEnterModal";
+import Tooltip from 'material-ui/Tooltip';
 
 interface Props {
     spammerStore: SpammerStore;
@@ -60,6 +64,9 @@ const styles: StyleRulesCallback = (theme: Theme) => ({
     nodeSelectForm: {
         display: 'inline',
         verticalAlign: 'center',
+    },
+    tooltip: {
+        fontSize: 20,
     },
 });
 
@@ -103,38 +110,91 @@ class dashboard extends React.Component<Props & WithStyles, {}> {
                                 disabled={running || disable_controls} variant="raised"
                         >
                             <i className="fas fa-play icon_margin_right"></i>
-                            Start
+                            {running ? "Running..." : "Start"}
                             {
                                 starting &&
                                 <CircularProgress className="button_loader" size={20}/>
                             }
                         </Button>
 
-                        <Button className={classes.button} onClick={this.stop}
+                        <Button onClick={this.stop} className={classes.button}
                                 disabled={!running || disable_controls} variant="raised"
                         >
                             <i className="fas fa-stop icon_margin_right"></i>
-                            Stop
+                            {stopping ? "STOPPING..." : "Stop"}
                             {
                                 stopping &&
                                 <CircularProgress className="button_loader" size={20}/>
                             }
                         </Button>
 
+                        <Snackbar
+                            anchorOrigin={{
+                                vertical: 'bottom',
+                                horizontal: 'center',
+                            }}
+                            open={stopping || starting}
+                            autoHideDuration={6000}
+                            onClose={() => {
+                            }}
+                            SnackbarContentProps={{
+                                'aria-describedby': 'message-id',
+                            }}
+                            message={
+                                <span id="message-id" className={'start_stop_snackbar'}>
+                                    {
+                                        starting &&
+                                        <span>
+                                            Starting: this will take some time...{' '}
+                                        </span>
+                                    }
+                                    {
+                                        stopping &&
+                                        <span>
+                                            Stopping: waiting for current PoW cycle to finish... {' '}
+                                        </span>
+                                    }
+                                    <CircularProgress color={"secondary"} className="start_stop_loader" size={20}/>
+                                </span>
+                            }
+                        />
+
                         <NodeSelector/>
 
                         {
                             last_metric &&
                             <div className={classes.lastMetricInfo}>
-                                <Chip label={"Bad Branch " + last_metric.bad_branch} className={classes.chip}/>
-                                <Chip label={"Bad Trunk " + last_metric.bad_trunk} className={classes.chip}/>
-                                <Chip label={"Bad B&T " + last_metric.bad_trunk_and_branch} className={classes.chip}/>
-                                <Chip label={"Milestone Branch " + last_metric.milestone_branch}
-                                      className={classes.chip}/>
-                                <Chip label={"Milestone Trunk " + last_metric.milestone_trunk}
-                                      className={classes.chip}/>
-                                <Chip label={"TX succeeded " + last_metric.txs_succeeded} className={classes.chip}/>
-                                <Chip label={"TX failed " + last_metric.txs_failed} className={classes.chip}/>
+                                <Tooltip id="tooltip-icon" classes={{popper: classes.tooltip}}
+                                         className={classes.tooltip}
+                                         title="Times a DTLG TX used another DTLG TX as branch"
+                                         placement="top">
+                                    <Chip label={"Branch " + last_metric.bad_branch} className={classes.chip}/>
+                                </Tooltip>
+                                <Tooltip id="tooltip-icon" title="Times a DTLG TX used another DTLG TX as trunk"
+                                         placement="top">
+                                    <Chip label={"Trunk " + last_metric.bad_trunk} className={classes.chip}/>
+                                </Tooltip>
+                                <Tooltip id="tooltip-icon"
+                                         title="Times a DTLG TX used other DTLG TXs as trunk and branch"
+                                         placement="top">
+                                    <Chip label={"B&T " + last_metric.bad_trunk_and_branch} className={classes.chip}/>
+                                </Tooltip>
+                                <Tooltip id="tooltip-icon" title="Times a DTLG TX used a milestone as branch"
+                                         placement="top">
+                                    <Chip label={"Milestone Branch " + last_metric.milestone_branch}
+                                          className={classes.chip}/>
+                                </Tooltip>
+                                <Tooltip id="tooltip-icon" title="Times a DTLG TX used a milestone as trunk"
+                                         placement="top">
+                                    <Chip label={"Milestone Trunk " + last_metric.milestone_trunk}
+                                          className={classes.chip}/>
+                                </Tooltip>
+                                <Tooltip id="tooltip-icon" title="Amount of succeeded TXs" placement="top">
+                                    <Chip label={"TX succeeded " + last_metric.txs_succeeded} className={classes.chip}/>
+                                </Tooltip>
+                                <Tooltip id="tooltip-icon" title="Amount of failed TXs to broadcast" placement="top">
+                                    <Chip label={"TX failed " + last_metric.txs_failed} className={classes.chip}/>
+                                </Tooltip>
                             </div>
                         }
                     </Grid>
