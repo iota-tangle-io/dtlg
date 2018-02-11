@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"reflect"
 	"strings"
+	"os"
 )
 
 type Config interface{}
@@ -12,6 +13,10 @@ type Config interface{}
 var subconfigs = []Config{&AppConfig{}, &NetConfig{}}
 
 func LoadConfig() *Configuration {
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
 	configuration := &Configuration{}
 	refConfig := reflect.Indirect(reflect.ValueOf(configuration))
 
@@ -24,7 +29,7 @@ func LoadConfig() *Configuration {
 		fileLocation := field.Tag.Get("loc")
 
 		// read file indicated by the field tag
-		fileBytes, err := ioutil.ReadFile(fileLocation)
+		fileBytes, err := ioutil.ReadFile(wd+fileLocation)
 		if err != nil {
 			panic(err)
 		}
@@ -45,7 +50,7 @@ type Configuration struct {
 }
 
 type AppConfig struct {
-	Location        interface{} `loc:"./configs/app.json"`
+	Location        interface{} `loc:"/configs/app.json"`
 	Name            string
 	Dev             bool
 	AutoOpenBrowser bool
@@ -53,7 +58,7 @@ type AppConfig struct {
 }
 
 type NetConfig struct {
-	Location    interface{} `loc:"./configs/network.json"`
+	Location    interface{} `loc:"/configs/network.json"`
 	HTTP        WebConfig
 	Coordinator CoordinatorConfig
 }

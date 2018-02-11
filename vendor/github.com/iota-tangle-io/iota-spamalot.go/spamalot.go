@@ -253,8 +253,8 @@ func (s *Spammer) Start() {
 
 	log.Println("Using IRI nodes:", s.nodes)
 
-	s.txsChan = make(chan Transaction)
-	s.tipsChan = make(chan Tips)
+	s.txsChan = make(chan Transaction, 20)
+	s.tipsChan = make(chan Tips, 20)
 	s.stopSignal = make(chan struct{})
 	s.metrics = newMetricsRouter()
 

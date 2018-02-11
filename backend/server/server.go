@@ -32,6 +32,11 @@ type Server struct {
 func (server *Server) Start() {
 	start := time.Now().UnixNano()
 
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
 	// load config
 	configuration := LoadConfig()
 	server.Config = configuration
@@ -61,12 +66,12 @@ func (server *Server) Start() {
 
 	// load html files
 	e.Renderer = &TemplateRendered{
-		templates: template.Must(template.ParseGlob(fmt.Sprintf("%s/*.html", httpConfig.Assets.HTML))),
+		templates: template.Must(template.ParseGlob(fmt.Sprintf("%s/*.html", wd+httpConfig.Assets.HTML))),
 	}
 
 	// asset paths
-	e.Static("/assets", httpConfig.Assets.Static)
-	e.File("/favicon.ico", httpConfig.Assets.Favicon)
+	e.Static("/assets", wd+httpConfig.Assets.Static)
+	e.File("/favicon.ico", wd+httpConfig.Assets.Favicon)
 
 	// create controllers
 	appCtrl := &controllers.AppCtrl{}

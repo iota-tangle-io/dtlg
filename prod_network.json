@@ -1,11 +1,11 @@
 {
   "http": {
     "domain": "localhost",
-    "address": "0.0.0.0:9090",
+    "address": ":9090",
     "assets": {
-      "static": "./spa",
-      "favicon": "./spa/img/favicon.ico",
-      "html": "./spa/html"
+      "static": "/spa",
+      "favicon": "/spa/img/favicon.ico",
+      "html": "/spa/html"
     },
     "logRequests": false
   }

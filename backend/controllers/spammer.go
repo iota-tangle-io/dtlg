@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 	"math/rand"
+	"fmt"
 )
 
 const DefaultMessage = "GOSPAMMER9SPAMALOT"
@@ -37,6 +38,7 @@ func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
 	for i := 0; i < 81; i++ {
 		address += string(alphabet[rand.Intn(len(alphabet))])
 	}
+
 	spammer, _ := spamalot.New(
 		spamalot.WithMWM(int64(14)),
 		spamalot.WithDepth(giota.Depth),
@@ -49,7 +51,8 @@ func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
 	)
 
 	// configure PoW
-	_, pow := giota.GetBestPoW()
+	s, pow := giota.GetBestPoW()
+	fmt.Println("using PoW:",s)
 	spammer.UpdateSettings(spamalot.WithPoW(pow))
 	spammer.UpdateSettings(spamalot.WithNode(ctrl.nodeURL, false))
 	return spammer

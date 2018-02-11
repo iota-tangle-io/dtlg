@@ -4,6 +4,13 @@ go:
 
 if: tag IS present
 
+sudo: required
+
+before_install:
+  - apt update -y
+  - apt install -y mingw-w64
+  - /usr/bin/x86_64-w64-mingw32-gcc --version
+
 install:
   - npm i
   - npm i -g webpack@3.9.1
@@ -12,9 +19,9 @@ install:
 script:
   - npm run build # compile frontend bundle
   - cd backend/cmd
-  - GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o dtlg-$TRAVIS_TAG-linux64
-  - GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -v -o dtlg-$TRAVIS_TAG-darwin64
-  - GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -v -o dtlg-$TRAVIS_TAG-win64.exe
+  - CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o dtlg-$TRAVIS_TAG-linux64
+  - CGO_ENABLED=1 CC=/usr/bin/x86_64-w64-mingw32-gcc GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -v -o dtlg-$TRAVIS_TAG-win64.exe
+  - CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -v -o dtlg-$TRAVIS_TAG-darwin64
   - md5sum dtlg-$TRAVIS_TAG-linux64
   - md5sum dtlg-$TRAVIS_TAG-darwin64
   - md5sum dtlg-$TRAVIS_TAG-win64.exe
