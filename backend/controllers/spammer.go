@@ -1,16 +1,19 @@
 package controllers
 
 import (
-	"github.com/iota-tangle-io/iota-spamalot.go"
-	"github.com/CWarner818/giota"
+	"fmt"
+	"math/rand"
+	"runtime"
+	"strings"
 	"sync"
 	"time"
-	"math/rand"
-	"fmt"
+
+	"github.com/CWarner818/giota"
+	"github.com/iota-tangle-io/iota-spamalot.go"
 )
 
-const DefaultMessage = "GOSPAMMER9SPAMALOT"
-const DefaultTag = "999SPAMALOT"
+const DefaultMessage = "DISTRIBUTED9TANGLE9LOAD9GENERATOR"
+const DefaultTag = "999DTLG"
 
 var alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9"
 
@@ -39,22 +42,26 @@ func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
 		address += string(alphabet[rand.Intn(len(alphabet))])
 	}
 
+	// configure PoW
+	s, pow := giota.GetBestPoW()
+	fmt.Println("using PoW:", s)
+
+	os := strings.ToUpper(runtime.GOOS)
+	tag := DefaultTag + "9" + os + "9" + strings.ToUpper(s)
+
 	spammer, _ := spamalot.New(
 		spamalot.WithMWM(int64(14)),
 		spamalot.WithDepth(giota.Depth),
 		spamalot.ToAddress(address),
-		spamalot.WithTag(DefaultTag),
+		spamalot.WithTag(tag),
 		spamalot.WithMessage(DefaultMessage),
 		spamalot.WithSecurityLevel(spamalot.SecurityLevel(2)),
 		spamalot.WithMetricsRelay(ctrl.metrics),
 		spamalot.WithStrategy(""),
+		spamalot.WithPoW(pow),
+		spamalot.WithNode(ctrl.nodeURL, false),
 	)
 
-	// configure PoW
-	s, pow := giota.GetBestPoW()
-	fmt.Println("using PoW:",s)
-	spammer.UpdateSettings(spamalot.WithPoW(pow))
-	spammer.UpdateSettings(spamalot.WithNode(ctrl.nodeURL, false))
 	return spammer
 }
 
