@@ -1,5 +1,5 @@
 import * as React from "react";
-import {withRouter} from "react-router";
+import {RouteComponentProps, withRouter} from "react-router";
 import {inject, observer} from 'mobx-react';
 import {ApplicationStore} from "../stores/AppStore";
 import DevTools from 'mobx-react-devtools';
@@ -10,14 +10,13 @@ import {Dashboard} from "./Dashboard";
 
 declare var __DEVELOPMENT__;
 
-interface Props {
+interface Props extends RouteComponentProps<any> {
     appStore: ApplicationStore;
 }
 
-@withRouter
 @inject("appStore")
 @observer
-export class App extends React.Component<Props, {}> {
+class app extends React.Component<Props, {}> {
     componentWillMount() {
 
     }
@@ -38,3 +37,5 @@ export class App extends React.Component<Props, {}> {
         );
     }
 }
+
+export var App = withRouter(app);

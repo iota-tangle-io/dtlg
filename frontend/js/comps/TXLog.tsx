@@ -14,7 +14,6 @@ interface Props {
     spammerStore?: SpammerStore;
 }
 
-@withRouter
 @inject("spammerStore")
 @observer
 export class TXLog extends React.Component<Props, {}> {

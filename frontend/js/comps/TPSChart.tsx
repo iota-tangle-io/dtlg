@@ -13,7 +13,6 @@ interface Props {
     spammerStore?: SpammerStore;
 }
 
-@withRouter
 @inject("spammerStore")
 @observer
 export class TPSChart extends React.Component<Props, {}> {
