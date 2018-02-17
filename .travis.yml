@@ -1,7 +1,11 @@
+env:
+  - VER=linux-win
+
 matrix:
   include:
     - language: go
       go: "1.10"
+      env: VER=linux-win
       before_install:
         - sudo apt update -y
         - sudo apt install -y mingw-w64
@@ -49,6 +53,7 @@ matrix:
     - language: go
       os: osx
       go: "1.10"
+      env: VER=darwin
       install:
         - npm i
         - npm i -g webpack@3.9.1
@@ -75,8 +80,18 @@ matrix:
         - zip -r dtlg-$TRAVIS_TAG-darwin64.zip dest-darwin64
 
 deploy:
-  provider: releases
-  api_key: $GITHUB_OAUTH_TOKEN
-  file:
-    - dtlg-*.zip
-  skip_cleanup: true
+  - provider: releases
+    api_key: $GITHUB_OAUTH_TOKEN
+    file:
+      - dtlg-$TRAVIS_TAG-win64.zip
+      - dtlg-$TRAVIS_TAG-linux64.zip
+    skip_cleanup: true
+    on:
+      condition: $VER = linux-win
+  - provider: releases
+    api_key: $GITHUB_OAUTH_TOKEN
+    file:
+      - dtlg-$TRAVIS_TAG-darwin64.zip
+    skip_cleanup: true
+    on:
+      condition: $VER = darwin
