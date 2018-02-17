@@ -1,7 +1,7 @@
 matrix:
   include:
     - language: go
-      go: 1.10
+      go: "1.10"
       before_install:
         - sudo apt update -y
         - sudo apt install -y mingw-w64
@@ -59,7 +59,7 @@ matrix:
         skip_cleanup: true
     - language: go
       os: osx
-      go: 1.10
+      go: "1.10"
       install:
         - npm i
         - npm i -g webpack@3.9.1
