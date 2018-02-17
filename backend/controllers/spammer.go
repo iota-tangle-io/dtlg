@@ -46,8 +46,7 @@ func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
 	s, pow := giota.GetBestPoW()
 	fmt.Println("using PoW:", s)
 
-	os := strings.ToUpper(runtime.GOOS)
-	tag := DefaultTag + "9" + os + "9" + strings.ToUpper(s)
+	tag := strings.ToUpper(DefaultTag + "9" + runtime.GOOS + "9" + s)
 
 	spammer, _ := spamalot.New(
 		spamalot.WithMWM(int64(14)),
