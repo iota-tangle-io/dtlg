@@ -1,6 +1,6 @@
 matrix:
   include:
-    - language go
+    - language: go
       go: 1.10
       before_install:
         - sudo apt update -y
@@ -57,7 +57,7 @@ matrix:
           - dtlg-$TRAVIS_TAG-win64.zip
           - dtlg-$TRAVIS_TAG-linux64.zip
         skip_cleanup: true
-    - language go
+    - language: go
       os: osx
       go: 1.10
       install:
