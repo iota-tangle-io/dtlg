@@ -10,10 +10,11 @@ import (
 	"github.com/labstack/echo/middleware"
 	"html/template"
 	"io"
-	"os"
 	"time"
 	"context"
 	"github.com/skratchdot/open-golang/open"
+	"os"
+	"path/filepath"
 )
 
 type TemplateRendered struct {
@@ -32,10 +33,11 @@ type Server struct {
 func (server *Server) Start() {
 	start := time.Now().UnixNano()
 
-	wd, err := os.Getwd()
+	ex, err := os.Executable()
 	if err != nil {
 		panic(err)
 	}
+	exPath := filepath.Dir(ex)
 
 	// load config
 	configuration := LoadConfig()
@@ -66,12 +68,12 @@ func (server *Server) Start() {
 
 	// load html files
 	e.Renderer = &TemplateRendered{
-		templates: template.Must(template.ParseGlob(fmt.Sprintf("%s/*.html", wd+httpConfig.Assets.HTML))),
+		templates: template.Must(template.ParseGlob(fmt.Sprintf("%s/*.html", exPath+httpConfig.Assets.HTML))),
 	}
 
 	// asset paths
-	e.Static("/assets", wd+httpConfig.Assets.Static)
-	e.File("/favicon.ico", wd+httpConfig.Assets.Favicon)
+	e.Static("/assets", exPath+httpConfig.Assets.Static)
+	e.File("/favicon.ico", exPath+httpConfig.Assets.Favicon)
 
 	// create controllers
 	appCtrl := &controllers.AppCtrl{}

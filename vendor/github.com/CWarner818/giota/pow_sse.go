@@ -1,3 +1,4 @@
+// +build sse_pow
 // +build linux,darwin,windows amd64
 
 /*
@@ -26,8 +27,8 @@ SOFTWARE.
 
 package giota
 
-// #cgo LDFLAGS: -march=native
-// #cgo CFLAGS:  -march=native
+// #cgo LDFLAGS:
+// #cgo CFLAGS:  -Wall
 /*
 #include <stdio.h>
 #include <string.h>

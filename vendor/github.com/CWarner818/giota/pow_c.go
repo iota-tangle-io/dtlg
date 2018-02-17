@@ -1,5 +1,5 @@
-// +build cgo
-// +build linux darwin
+// +build c_pow
+// +build linux darwin windows
 
 /*
 MIT License

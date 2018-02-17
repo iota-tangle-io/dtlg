@@ -70,7 +70,7 @@ func init() {
 func GetBestPoW() (string, PowFunc) {
 
 	// PowGo is the last and default return value
-	powOrderPreference := []string{"PowCL", "PowSSE", "PowC"}
+	powOrderPreference := []string{"PowAVX", "PowCL", "PowSSE", "PowC"}
 
 	for _, pow := range powOrderPreference {
 		if p, exist := powFuncs[pow]; exist {

@@ -3,7 +3,7 @@
     "domain": "localhost",
     "address": ":9090",
     "assets": {
-      "static": "../../frontend",
+      "static": "/../../frontend",
       "favicon": "../../frontend/img/favicon.ico",
       "html": "/../../frontend/html"
     },

@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"os"
+	"path/filepath"
 )
 
 type Config interface{}
@@ -13,10 +14,11 @@ type Config interface{}
 var subconfigs = []Config{&AppConfig{}, &NetConfig{}}
 
 func LoadConfig() *Configuration {
-	wd, err := os.Getwd()
+	ex, err := os.Executable()
 	if err != nil {
 		panic(err)
 	}
+	exPath := filepath.Dir(ex)
 	configuration := &Configuration{}
 	refConfig := reflect.Indirect(reflect.ValueOf(configuration))
 
@@ -29,7 +31,7 @@ func LoadConfig() *Configuration {
 		fileLocation := field.Tag.Get("loc")
 
 		// read file indicated by the field tag
-		fileBytes, err := ioutil.ReadFile(wd+fileLocation)
+		fileBytes, err := ioutil.ReadFile(exPath + fileLocation)
 		if err != nil {
 			panic(err)
 		}

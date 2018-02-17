@@ -1,78 +1,92 @@
-language: go
-go:
-  - 1.10rc1
-
-if: tag IS present
-
-before_install:
-  - sudo apt update -y
-  - sudo apt install -y mingw-w64
-  - /usr/bin/x86_64-w64-mingw32-gcc --version
-
-install:
-  - npm i
-  - npm i -g webpack@3.9.1
-  - npm i -g typescript@2.6.2
-
-script:
-  - npm run build # compile frontend bundle
-  - cd backend/cmd
-  - CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o dtlg-$TRAVIS_TAG-linux64
-  - CGO_ENABLED=1 CC=/usr/bin/x86_64-w64-mingw32-gcc GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -v -o dtlg-$TRAVIS_TAG-win64.exe
-  - CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -v -o dtlg-$TRAVIS_TAG-darwin64
-  - md5sum dtlg-$TRAVIS_TAG-linux64
-  - md5sum dtlg-$TRAVIS_TAG-darwin64
-  - md5sum dtlg-$TRAVIS_TAG-win64.exe
-  - ls
-  - cd ../.. #change back to root
-  - echo "building dists"
-  - mkdir -p dest-win64/spa/js
-  - mkdir -p dest-win64/spa/html
-  - mkdir -p dest-win64/spa/css
-  - mkdir -p dest-win64/spa/img
-  - mkdir -p dest-win64/configs
-  - cp ./frontend/js/bundle.min.js ./dest-win64/spa/js
-  - cp -r ./frontend/css/* ./dest-win64/spa/css
-  - cp -r ./frontend/html/* ./dest-win64/spa/html
-  - cp -r ./frontend/img/* ./dest-win64/spa/img
-  - cp -r ./backend/cmd/dtlg-$TRAVIS_TAG-win64.exe ./dest-win64
-  - cp -r ./prod_network.json ./dest-win64/configs/network.json
-  - cp -r ./prod_app.json ./dest-win64/configs/app.json
-  - zip -r dtlg-$TRAVIS_TAG-win64.zip dest-win64
-  - mkdir -p dest-linux64/spa/js
-  - mkdir -p dest-linux64/spa/html
-  - mkdir -p dest-linux64/spa/css
-  - mkdir -p dest-linux64/spa/img
-  - mkdir -p dest-linux64/configs
-  - cp ./frontend/js/bundle.min.js ./dest-linux64/spa/js
-  - cp -r ./frontend/css/* ./dest-linux64/spa/css
-  - cp -r ./frontend/html/* ./dest-linux64/spa/html
-  - cp -r ./frontend/img/* ./dest-linux64/spa/img
-  - cp -r ./backend/cmd/dtlg-$TRAVIS_TAG-linux64 ./dest-linux64
-  - cp -r ./prod_network.json ./dest-linux64/configs/network.json
-  - cp -r ./prod_app.json ./dest-linux64/configs/app.json
-  - zip -r dtlg-$TRAVIS_TAG-linux64.zip dest-linux64
-  - mkdir -p dest-darwin64/spa/js
-  - mkdir -p dest-darwin64/spa/html
-  - mkdir -p dest-darwin64/spa/css
-  - mkdir -p dest-darwin64/spa/img
-  - mkdir -p dest-darwin64/configs
-  - cp ./frontend/js/bundle.min.js ./dest-darwin64/spa/js
-  - cp -r ./frontend/css/* ./dest-darwin64/spa/css
-  - cp -r ./frontend/html/* ./dest-darwin64/spa/html
-  - cp -r ./frontend/img/* ./dest-darwin64/spa/img
-  - cp -r ./backend/cmd/dtlg-$TRAVIS_TAG-darwin64 ./dest-darwin64
-  - cp -r ./prod_network.json ./dest-darwin64/configs/network.json
-  - cp -r ./prod_app.json ./dest-darwin64/configs/app.json
-  - zip -r dtlg-$TRAVIS_TAG-darwin64.zip dest-darwin64
-
-deploy:
-  provider: releases
-  api_key: $GITHUB_OAUTH_TOKEN
-  file:
-    - dtlg-$TRAVIS_TAG-win64.zip
-    - dtlg-$TRAVIS_TAG-linux64.zip
-    - dtlg-$TRAVIS_TAG-darwin64.zip
-  skip_cleanup: true
-  on:
-    tags: true
+matrix:
+  include:
+    - language go
+      go: 1.10
+      before_install:
+        - sudo apt update -y
+        - sudo apt install -y mingw-w64
+        - /usr/bin/x86_64-w64-mingw32-gcc --version
+      install:
+        - npm i
+        - npm i -g webpack@3.9.1
+        - npm i -g typescript@2.6.2
+      script:
+        - npm run build # compile frontend bundle
+        - cd backend/cmd
+        - CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build --tags="c_pow sse_pow" -ldflags="-s -w" -v -o dtlg-$TRAVIS_TAG-linux64
+        - CGO_ENABLED=1 CC=/usr/bin/x86_64-w64-mingw32-gcc GOOS=windows GOARCH=amd64 go build --tags="c_pow sse_pow" -ldflags="-s -w" -v -o dtlg-$TRAVIS_TAG-win64.exe
+        - md5sum dtlg-$TRAVIS_TAG-linux64
+        - md5sum dtlg-$TRAVIS_TAG-win64.exe
+        - ls
+        - cd ../.. #change back to root
+        - echo "building dists"
+        - mkdir -p dest-win64/spa/js
+        - mkdir -p dest-win64/spa/html
+        - mkdir -p dest-win64/spa/css
+        - mkdir -p dest-win64/spa/img
+        - mkdir -p dest-win64/configs
+        - cp ./frontend/js/bundle.min.js ./dest-win64/spa/js
+        - cp -r ./frontend/css/* ./dest-win64/spa/css
+        - cp -r ./frontend/html/* ./dest-win64/spa/html
+        - cp -r ./frontend/img/* ./dest-win64/spa/img
+        - cp -r ./backend/cmd/dtlg-$TRAVIS_TAG-win64-go-pow.exe ./dest-win64
+        - cp -r ./backend/cmd/dtlg-$TRAVIS_TAG-win64-sse-pow.exe ./dest-win64
+        - cp -r ./backend/cmd/dtlg-$TRAVIS_TAG-win64-c-pow.exe ./dest-win64
+        - cp -r ./prod_network.json ./dest-win64/configs/network.json
+        - cp -r ./prod_app.json ./dest-win64/configs/app.json
+        - zip -r dtlg-$TRAVIS_TAG-win64.zip dest-win64
+        - mkdir -p dest-linux64/spa/js
+        - mkdir -p dest-linux64/spa/html
+        - mkdir -p dest-linux64/spa/css
+        - mkdir -p dest-linux64/spa/img
+        - mkdir -p dest-linux64/configs
+        - cp ./frontend/js/bundle.min.js ./dest-linux64/spa/js
+        - cp -r ./frontend/css/* ./dest-linux64/spa/css
+        - cp -r ./frontend/html/* ./dest-linux64/spa/html
+        - cp -r ./frontend/img/* ./dest-linux64/spa/img
+        - cp -r ./backend/cmd/dtlg-$TRAVIS_TAG-linux64-go-pow ./dest-linux64
+        - cp -r ./backend/cmd/dtlg-$TRAVIS_TAG-linux64-sse-pow ./dest-linux64
+        - cp -r ./backend/cmd/dtlg-$TRAVIS_TAG-linux64-c-pow ./dest-linux64
+        - cp -r ./prod_network.json ./dest-linux64/configs/network.json
+        - cp -r ./prod_app.json ./dest-linux64/configs/app.json
+        - zip -r dtlg-$TRAVIS_TAG-linux64.zip dest-linux64
+      deploy:
+        provider: releases
+        api_key: $GITHUB_OAUTH_TOKEN
+        file:
+          - dtlg-$TRAVIS_TAG-win64.zip
+          - dtlg-$TRAVIS_TAG-linux64.zip
+        skip_cleanup: true
+    - language go
+      os: osx
+      go: 1.10
+      install:
+        - npm i
+        - npm i -g webpack@3.9.1
+        - npm i -g typescript@2.6.2
+      script:
+        - npm run build
+        - cd backend/cmd
+        - CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build --tags="c_pow sse_pow" -ldflags="-s -w" -v -o dtlg-$TRAVIS_TAG-darwin64
+        - md5sum dtlg-$TRAVIS_TAG-darwin64
+        - ls
+        - cd ../..
+        - mkdir -p dest-darwin64/spa/js
+        - mkdir -p dest-darwin64/spa/html
+        - mkdir -p dest-darwin64/spa/css
+        - mkdir -p dest-darwin64/spa/img
+        - mkdir -p dest-darwin64/configs
+        - cp ./frontend/js/bundle.min.js ./dest-darwin64/spa/js
+        - cp -r ./frontend/css/* ./dest-darwin64/spa/css
+        - cp -r ./frontend/html/* ./dest-darwin64/spa/html
+        - cp -r ./frontend/img/* ./dest-darwin64/spa/img
+        - cp -r ./backend/cmd/dtlg-$TRAVIS_TAG-darwin64 ./dest-darwin64
+        - cp -r ./prod_network.json ./dest-darwin64/configs/network.json
+        - cp -r ./prod_app.json ./dest-darwin64/configs/app.json
+        - zip -r dtlg-$TRAVIS_TAG-darwin64.zip dest-darwin64
+      deploy:
+        provider: releases
+        api_key: $GITHUB_OAUTH_TOKEN
+        file:
+          - dtlg-$TRAVIS_TAG-darwin64.zip
+        skip_cleanup: true

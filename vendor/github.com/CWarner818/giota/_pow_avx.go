@@ -1,5 +1,5 @@
 // +build avx
-// +build linux,amd64
+// +build linux, amd64
 
 /*
 MIT License
@@ -27,8 +27,7 @@ SOFTWARE.
 
 package giota
 
-// #cgo LDFLAGS: -mavx
-// #cgo CFLAGS: -mavx -Wall
+
 /*
 #include <stdio.h>
 #include <string.h>
@@ -322,7 +321,7 @@ import (
 )
 
 func init() {
-	pows["PowAVX"] = PowAVX
+	powFuncs["PowAVX"] = PowAVX
 }
 
 var countAVX int64
