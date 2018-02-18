@@ -13,8 +13,8 @@ import (
 	"github.com/coreos/bbolt"
 )
 
-const DefaultMessage = "GOSPAMMER9SPAMALOT"
-const DefaultTag = "999SPAMALOT"
+const DefaultMessage = "DISTRIBUTED9TANGLE9LOAD9GENERATOR"
+const DefaultTag = "999DTLG"
 
 var alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9"
 
@@ -47,6 +47,8 @@ func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
 		address += string(alphabet[rand.Intn(len(alphabet))])
 	}
 
+	tag := strings.ToUpper(DefaultTag + "9" + runtime.GOOS + "9" + s)
+
 	if ctrl.database != nil {
 		ctrl.database.Close()
 	}
@@ -61,7 +63,7 @@ func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
 		spamalot.WithMWM(int64(14)),
 		spamalot.WithDepth(giota.Depth),
 		spamalot.ToAddress(address),
-		spamalot.WithTag(DefaultTag),
+		spamalot.WithTag(tag),
 		spamalot.WithMessage(DefaultMessage),
 		spamalot.WithSecurityLevel(spamalot.SecurityLevel(2)),
 		spamalot.WithMetricsRelay(ctrl.metrics),
