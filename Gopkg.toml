@@ -27,7 +27,7 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/CWarner818/giota"
+  name = "github.com/cwarner818/giota"
 
 [[constraint]]
   branch = "master"
@@ -42,7 +42,7 @@
   version = "1.2.0"
 
 [[constraint]]
-  revision = "d3950d973f5c6336061e754476e995c50837a2b3"
+  branch = "master"
   name = "github.com/iota-tangle-io/iota-spamalot.go"
 
 [[constraint]]

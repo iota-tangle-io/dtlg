@@ -25,22 +25,26 @@ package spamalot
 
 import (
 	"log"
+	"math"
 	"time"
 
-	"github.com/CWarner818/giota"
+	"github.com/cwarner818/giota"
 )
 
 type MetricType byte
 
 const (
-	INC_MILESTONE_BRANCH     MetricType = 0
-	INC_MILESTONE_TRUNK      MetricType = 1
-	INC_BAD_TRUNK            MetricType = 2
-	INC_BAD_BRANCH           MetricType = 3
-	INC_BAD_TRUNK_AND_BRANCH MetricType = 4
-	INC_FAILED_TX            MetricType = 5
-	INC_SUCCESSFUL_TX        MetricType = 6
-	SUMMARY                  MetricType = 7
+	INC_MILESTONE_BRANCH MetricType = iota
+	INC_MILESTONE_TRUNK
+	INC_BAD_TRUNK
+	INC_BAD_BRANCH
+	INC_BAD_TRUNK_AND_BRANCH
+	INC_FAILED_TX
+	INC_SUCCESSFUL_TX
+	INC_NEW_CACHED_TX
+	INC_GET_CACHED_TX
+	SET_CONFIRMATION_RATE
+	SUMMARY
 )
 
 type Metric struct {
@@ -58,6 +62,9 @@ type Summary struct {
 	MilestoneBranch   int     `json:"milestone_branch"`
 	TPS               float64 `json:"tps"`
 	ErrorRate         float64 `json:"error_rate"`
+	CachedTX          int     `json:"cached_tx"`
+	RetrievedTX       int     `json:"new_tx"`
+	ConfirmationRate  float64 `json:"confirmation_rate"`
 }
 
 type TXData struct {
@@ -71,10 +78,11 @@ type txandnode struct {
 	node Node
 }
 
-func newMetricsRouter() *metricsrouter {
+func newMetricsRouter(db *Database) *metricsrouter {
 	return &metricsrouter{
 		metrics:    make(chan Metric),
 		stopSignal: make(chan struct{}),
+		db:         db,
 	}
 }
 
@@ -86,7 +94,10 @@ type metricsrouter struct {
 	startTime time.Time
 
 	txsSucceeded, txsFailed, badBranch, badTrunk, badTrunkAndBranch int
-	milestoneTrunk, milestoneBranch                                 int
+	milestoneTrunk, milestoneBranch, txCached, txRetrieved          int
+	confirmationRate                                                float64
+
+	db *Database
 }
 
 func (mr *metricsrouter) stop() {
@@ -104,6 +115,7 @@ func (mr *metricsrouter) addRelay(relay chan<- Metric) {
 
 func (mr *metricsrouter) collect() {
 	mr.startTime = time.Now()
+	mr.db.dbNewRun(mr.startTime.Format(rfc3339nano))
 	for {
 		select {
 		case <-mr.stopSignal:
@@ -122,6 +134,12 @@ func (mr *metricsrouter) collect() {
 				mr.badTrunkAndBranch++
 			case INC_FAILED_TX:
 				mr.txsFailed++
+			case INC_NEW_CACHED_TX:
+				mr.txCached++
+			case INC_GET_CACHED_TX:
+				mr.txRetrieved++
+			case SET_CONFIRMATION_RATE:
+				mr.confirmationRate = metric.Data.(float64)
 			case INC_SUCCESSFUL_TX:
 				mr.txsSucceeded++
 				mr.printMetrics(metric.Data.(txandnode))
@@ -133,9 +151,35 @@ func (mr *metricsrouter) collect() {
 		}
 	}
 }
+func (mr *metricsrouter) getSummary() *Summary {
+	dur := time.Since(mr.startTime)
+	tps := float64(mr.txsSucceeded) / dur.Seconds()
+	successRate := 100 * (float64(mr.txsSucceeded) / (float64(mr.txsSucceeded) + float64(mr.txsFailed)))
 
+	errorRate := 100 - successRate
+	if math.IsNaN(errorRate) {
+		errorRate = 0
+	}
+	return &Summary{
+		TXsSucceeded:      mr.txsSucceeded,
+		TXsFailed:         mr.txsFailed,
+		BadBranch:         mr.badBranch,
+		BadTrunk:          mr.badBranch,
+		BadTrunkAndBranch: mr.badTrunkAndBranch,
+		MilestoneTrunk:    mr.milestoneTrunk,
+		MilestoneBranch:   mr.milestoneBranch,
+		TPS:               tps,
+		ErrorRate:         errorRate,
+		CachedTX:          mr.txCached,
+		RetrievedTX:       mr.txRetrieved,
+		ConfirmationRate:  mr.confirmationRate,
+	}
+}
 func (mr *metricsrouter) printMetrics(txAndNode txandnode) {
 	tx := txAndNode.tx
+	// Save transaction to database
+	mr.db.LogSentTransactions(tx.Transactions)
+
 	node := txAndNode.node
 	var hash giota.Trytes
 	if len(tx.Transactions) > 1 {
@@ -154,20 +198,15 @@ func (mr *metricsrouter) printMetrics(txAndNode txandnode) {
 
 	// success rate = successful TXs / successful TXs + failed TXs
 	successRate := 100 * (float64(mr.txsSucceeded) / (float64(mr.txsSucceeded) + float64(mr.txsFailed)))
-	log.Printf("%.2f TPS -- success rate %.0f%% ", tps, successRate)
+	log.Printf("%.2f TPS -- success rate %.0f%% Confirmed: %0.2f%%\n", tps, successRate, mr.confirmationRate)
 
-	log.Printf("Duration: %s Count: %d Milestone Trunk: %d Milestone Branch: %d Bad Trunk: %d Bad Branch: %d Both: %d",
+	log.Printf("Duration: %s Count: %d Milestone Trunk: %d Milestone Branch: %d Bad Trunk: %d Bad Branch: %d Both: %d Fetched: %d Cached: %d",
 		dur.String(), mr.txsSucceeded, mr.milestoneTrunk,
-		mr.milestoneBranch, mr.badTrunk, mr.badBranch, mr.badTrunkAndBranch)
+		mr.milestoneBranch, mr.badTrunk, mr.badBranch, mr.badTrunkAndBranch, mr.txCached, mr.txRetrieved)
 
 	// send current state of the spammer
 	if mr.relay != nil {
-		summary := Summary{
-			TXsSucceeded:   mr.txsSucceeded, TXsFailed: mr.txsFailed,
-			BadBranch:      mr.badBranch, BadTrunk: mr.badBranch, BadTrunkAndBranch: mr.badTrunkAndBranch,
-			MilestoneTrunk: mr.milestoneTrunk, MilestoneBranch: mr.milestoneBranch,
-			TPS:            tps, ErrorRate: 100 - successRate,
-		}
+		summary := mr.getSummary()
 		mr.relay <- Metric{Kind: SUMMARY, Data: summary}
 
 		// send tx

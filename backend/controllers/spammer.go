@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/iota-tangle-io/iota-spamalot.go"
-	"github.com/CWarner818/giota"
+	"github.com/cwarner818/giota"
 	"sync"
 	"time"
 	"math/rand"
@@ -10,6 +10,7 @@ import (
 	"gopkg.in/inconshreveable/log15.v2"
 	"github.com/iota-tangle-io/dtlg/backend/utilities"
 	"runtime"
+	"github.com/coreos/bbolt"
 )
 
 const DefaultMessage = "GOSPAMMER9SPAMALOT"
@@ -37,6 +38,7 @@ type SpammerCtrl struct {
 	nodeURL string
 	powType string
 	logger  log15.Logger
+	database *spamalot.Database
 }
 
 func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
@@ -44,6 +46,15 @@ func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
 	for i := 0; i < 81; i++ {
 		address += string(alphabet[rand.Intn(len(alphabet))])
 	}
+
+	if ctrl.database != nil {
+		ctrl.database.Close()
+	}
+	db, err := bolt.Open("dtlg.db", 0600, nil)
+	if err != nil {
+		panic(err)
+	}
+	ctrl.database = spamalot.NewDatabase(db)
 
 	powFunc := giota.GetAvailablePoWFuncs()[ctrl.powType]
 	spammer, _ := spamalot.New(
@@ -56,6 +67,8 @@ func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
 		spamalot.WithMetricsRelay(ctrl.metrics),
 		spamalot.WithStrategy(""),
 		spamalot.WithPoW(powFunc),
+		spamalot.WithMessageMetrics(true),
+		spamalot.WithDatabase(ctrl.database),
 		spamalot.WithNode(ctrl.nodeURL, false),
 	)
 

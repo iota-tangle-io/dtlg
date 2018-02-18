@@ -19,13 +19,14 @@ interface Props {
 export class TXLog extends React.Component<Props, {}> {
     render() {
         let txs = this.props.spammerStore.transactions;
+        let lastConfirmationRate = this.props.spammerStore.last_metric.confirmation_rate;
         let entries = [];
         txs.forEach(tx => {
             entries.push(<TX key={tx.hash} tx={tx}></TX>)
         });
         return (
             <div>
-                <h3>Transactions ({txs.length})</h3>
+                <h3>Transactions ({txs.length}) / Confirmation Rate {lastConfirmationRate}%</h3>
                 <Divider/>
                 <br/>
                 <div className={'tx_log'}>

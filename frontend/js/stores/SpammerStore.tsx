@@ -33,7 +33,10 @@ let MetricType = {
     INC_BAD_TRUNK_AND_BRANCH: 4,
     INC_FAILED_TX: 5,
     INC_SUCCESSFUL_TX: 6,
-    SUMMARY: 7,
+    INC_NEW_CACHED_TX: 7,
+    INC_GET_CACHED_TX: 8,
+    SET_CONFIRMATION_RATE: 9,
+    SUMMARY: 10,
 }
 
 export class TXData {
@@ -53,6 +56,7 @@ export class MetricSummary {
     milestone_branch: number = 0;
     tps: number = 0;
     error_rate: number = 0;
+    confirmation_rate: number = 0;
 }
 
 export class Metric {
@@ -168,7 +172,7 @@ export class SpammerStore {
                         }
 
                         // updated pow
-                        if(this.previous_state.pow !== stateMsg.pow) {
+                        if (this.previous_state.pow !== stateMsg.pow) {
                             this.pow_dialog_open = false;
                             this.updating_pow = false;
                             this.disable_controls = false;
@@ -254,7 +258,7 @@ export class SpammerStore {
         let msg = new WsMsg();
         msg.msg_type = MsgType.CHANGE_POW;
         msg.data = this.pow;
-        if (this.previous_state.pow === this.pow){
+        if (this.previous_state.pow === this.pow) {
             this.disable_controls = false;
             this.pow_dialog_open = false;
             this.updating_pow = false;
@@ -266,12 +270,12 @@ export class SpammerStore {
     }
 
     @action
-    openPoWDialog(){
+    openPoWDialog() {
         this.pow_dialog_open = true;
     }
 
     @action
-    closePoWDialog(){
+    closePoWDialog() {
         this.pow_dialog_open = false;
     }
 
