@@ -36,7 +36,6 @@ const styles: StyleRulesCallback = (theme: Theme) => ({
     },
 });
 
-@withRouter
 @inject("spammerStore")
 @observer
 class nodeentermodel extends React.Component<Props & WithStyles, {}> {

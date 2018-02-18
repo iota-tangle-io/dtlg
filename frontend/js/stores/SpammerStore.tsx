@@ -2,6 +2,7 @@
 import {action, computed, observable, ObservableMap, runInAction} from "mobx";
 import dateformat from 'dateformat';
 import validUrl from 'valid-url';
+import {Model} from "../models/BackOn";
 
 let MsgType = {
     START: 1,
@@ -9,11 +10,13 @@ let MsgType = {
     METRIC: 3,
     STATE: 4,
     CHANGE_NODE: 5,
+    CHANGE_POW: 6,
 };
 
 class StateMsg {
     running: boolean;
     node: string;
+    pow: string;
 }
 
 class WsMsg {
@@ -30,7 +33,10 @@ let MetricType = {
     INC_BAD_TRUNK_AND_BRANCH: 4,
     INC_FAILED_TX: 5,
     INC_SUCCESSFUL_TX: 6,
-    SUMMARY: 7,
+    INC_NEW_CACHED_TX: 7,
+    INC_GET_CACHED_TX: 8,
+    SET_CONFIRMATION_RATE: 9,
+    SUMMARY: 10,
 }
 
 export class TXData {
@@ -50,6 +56,7 @@ export class MetricSummary {
     milestone_branch: number = 0;
     tps: number = 0;
     error_rate: number = 0;
+    confirmation_rate: number = 0;
 }
 
 export class Metric {
@@ -57,6 +64,16 @@ export class Metric {
     kind: number;
     data: any;
     ts: Date;
+}
+
+export class AvailablePoWsReq extends Model {
+    pows: Array<string>;
+
+    constructor(attrs?: any) {
+        super(attrs);
+        this.url = '/api/spammer/pows';
+        this.noIDInURI = true;
+    }
 }
 
 export class SpammerStore {
@@ -75,6 +92,12 @@ export class SpammerStore {
     @observable node_valid: boolean = false;
     @observable updating_node: boolean = false;
     @observable node_updated: boolean = false;
+
+    @observable pow: string = "";
+    @observable updating_pow: boolean = false;
+    @observable available_pows: Array<string> = [];
+    @observable pow_dialog_open: boolean = false;
+
     first_node_update_done: boolean = false;
 
     ws: WebSocket = null;
@@ -137,7 +160,7 @@ export class SpammerStore {
                         if (this.previous_state.node !== stateMsg.node) {
                             this.disable_controls = false;
                             this.updating_node = false;
-                            if(this.previous_state.node){
+                            if (this.previous_state.node) {
                                 this.node_updated = true;
                             }
                             this.node_valid = true;
@@ -146,6 +169,14 @@ export class SpammerStore {
                         if (!this.node && stateMsg.node && !this.first_node_update_done) {
                             this.node = stateMsg.node;
                             this.first_node_update_done = true;
+                        }
+
+                        // updated pow
+                        if (this.previous_state.pow !== stateMsg.pow) {
+                            this.pow_dialog_open = false;
+                            this.updating_pow = false;
+                            this.disable_controls = false;
+                            this.pow = stateMsg.pow;
                         }
 
                         if (!stateMsg.node) {
@@ -177,6 +208,20 @@ export class SpammerStore {
         };
     }
 
+    async loadAvailablePoWs() {
+        try {
+            let req = new AvailablePoWsReq();
+            await req.fetch();
+            runInAction("load pows", () => {
+                this.available_pows = req.pows;
+            });
+        } catch (e) {
+            runInAction("load pows error", () => {
+                console.log(e);
+            });
+        }
+    }
+
     @action
     closeEnterNodeModal() {
         this.enter_node_modal_open = false;
@@ -196,10 +241,42 @@ export class SpammerStore {
         let msg = new WsMsg();
         msg.msg_type = MsgType.CHANGE_NODE;
         msg.data = this.node;
-        if(this.previous_state.node === this.node || !this.node_valid) return;
+        if (this.previous_state.node === this.node || !this.node_valid) return;
         this.disable_controls = true;
         this.updating_node = true;
         this.ws.send(JSON.stringify(msg));
+    }
+
+    @action
+    changePoW(pow: string) {
+        this.pow = pow;
+    }
+
+    @action
+    updatePoW() {
+        if (!this.connected) return;
+        let msg = new WsMsg();
+        msg.msg_type = MsgType.CHANGE_POW;
+        msg.data = this.pow;
+        if (this.previous_state.pow === this.pow) {
+            this.disable_controls = false;
+            this.pow_dialog_open = false;
+            this.updating_pow = false;
+            return;
+        }
+        this.disable_controls = true;
+        this.updating_pow = true;
+        this.ws.send(JSON.stringify(msg));
+    }
+
+    @action
+    openPoWDialog() {
+        this.pow_dialog_open = true;
+    }
+
+    @action
+    closePoWDialog() {
+        this.pow_dialog_open = false;
     }
 
     @action

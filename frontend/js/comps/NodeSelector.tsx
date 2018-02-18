@@ -46,7 +46,6 @@ const styles: StyleRulesCallback = (theme: Theme) => ({
     },
 });
 
-@withRouter
 @inject("spammerStore")
 @observer
 class nodeselector extends React.Component<Props & WithStyles, {}> {

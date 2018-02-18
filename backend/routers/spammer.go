@@ -4,8 +4,8 @@ import (
 	"github.com/labstack/echo"
 	"github.com/iota-tangle-io/dtlg/backend/controllers"
 	"github.com/gorilla/websocket"
-	"github.com/iota-tangle-io/dtlg/backend/utilities"
 	"time"
+	"net/http"
 )
 
 var (
@@ -22,11 +22,12 @@ type MsgType byte
 const (
 	SERVER_READ_ERROR MsgType = 0
 
-	START  MsgType = 1
-	STOP   MsgType = 2
-	METRIC MsgType = 3
-	STATE  MsgType = 4
+	START       MsgType = 1
+	STOP        MsgType = 2
+	METRIC      MsgType = 3
+	STATE       MsgType = 4
 	CHANGE_NODE MsgType = 5
+	CHANGE_POW  MsgType = 6
 )
 
 type wsmsg struct {
@@ -39,13 +40,17 @@ func newWSMsg() *wsmsg {
 	return &wsmsg{TS: time.Now()}
 }
 
+type powsmsg struct {
+	PoWs []string `json:"pows"`
+}
+
 func (router *SpammerRouter) Init() {
 
-	logger, err := utilities.GetLogger("spammer-router")
-	if err != nil {
-		panic(err)
-	}
 	group := router.WebEngine.Group("/api/spammer")
+
+	group.GET("/pows", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, powsmsg{router.Ctrl.AvailablePowTypes()})
+	})
 
 	group.GET("", func(c echo.Context) error {
 
@@ -70,7 +75,6 @@ func (router *SpammerRouter) Init() {
 				select {
 				case msgToWrite := <-writer:
 					if err := ws.WriteJSON(msgToWrite); err != nil {
-						logger.Error("unable to send message", "err", err.Error())
 						return
 					}
 				case <-stop:
@@ -88,7 +92,7 @@ func (router *SpammerRouter) Init() {
 				default:
 				}
 				writer <- wsmsg{MsgType: STATE, Data: router.Ctrl.State(), TS: time.Now()}
-				<-time.After(time.Duration(1)*time.Second)
+				<-time.After(time.Duration(1) * time.Second)
 			}
 		}()
 
@@ -111,7 +115,6 @@ func (router *SpammerRouter) Init() {
 		for {
 			msg := &wsmsg{}
 			if err := ws.ReadJSON(msg); err != nil {
-				logger.Error("unable to read ws message", "err", err.Error())
 				break
 			}
 
@@ -122,6 +125,8 @@ func (router *SpammerRouter) Init() {
 				router.Ctrl.Stop()
 			case CHANGE_NODE:
 				router.Ctrl.ChangeNode(msg.Data.(string))
+			case CHANGE_POW:
+				router.Ctrl.ChangePoWType(msg.Data.(string))
 			}
 
 			// auto send state after each received command

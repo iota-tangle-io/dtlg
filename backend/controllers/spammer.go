@@ -1,15 +1,16 @@
 package controllers
 
 import (
-	"fmt"
-	"math/rand"
-	"runtime"
-	"strings"
+	"github.com/iota-tangle-io/iota-spamalot.go"
+	"github.com/cwarner818/giota"
 	"sync"
 	"time"
-
-	"github.com/CWarner818/giota"
-	"github.com/iota-tangle-io/iota-spamalot.go"
+	"math/rand"
+	"fmt"
+	"gopkg.in/inconshreveable/log15.v2"
+	"github.com/iota-tangle-io/dtlg/backend/utilities"
+	"runtime"
+	"github.com/coreos/bbolt"
 )
 
 const DefaultMessage = "DISTRIBUTED9TANGLE9LOAD9GENERATOR"
@@ -20,6 +21,7 @@ var alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9"
 type StatusMsg struct {
 	Running bool   `json:"running"`
 	Node    string `json:"node"`
+	PoW     string `json:"pow"`
 }
 
 type SpammerCtrl struct {
@@ -34,6 +36,9 @@ type SpammerCtrl struct {
 	nextListenerID int
 
 	nodeURL string
+	powType string
+	logger  log15.Logger
+	database *spamalot.Database
 }
 
 func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
@@ -42,12 +47,18 @@ func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
 		address += string(alphabet[rand.Intn(len(alphabet))])
 	}
 
-	// configure PoW
-	s, pow := giota.GetBestPoW()
-	fmt.Println("using PoW:", s)
-
 	tag := strings.ToUpper(DefaultTag + "9" + runtime.GOOS + "9" + s)
 
+	if ctrl.database != nil {
+		ctrl.database.Close()
+	}
+	db, err := bolt.Open("dtlg.db", 0600, nil)
+	if err != nil {
+		panic(err)
+	}
+	ctrl.database = spamalot.NewDatabase(db)
+
+	powFunc := giota.GetAvailablePoWFuncs()[ctrl.powType]
 	spammer, _ := spamalot.New(
 		spamalot.WithMWM(int64(14)),
 		spamalot.WithDepth(giota.Depth),
@@ -57,7 +68,9 @@ func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
 		spamalot.WithSecurityLevel(spamalot.SecurityLevel(2)),
 		spamalot.WithMetricsRelay(ctrl.metrics),
 		spamalot.WithStrategy(""),
-		spamalot.WithPoW(pow),
+		spamalot.WithPoW(powFunc),
+		spamalot.WithMessageMetrics(true),
+		spamalot.WithDatabase(ctrl.database),
 		spamalot.WithNode(ctrl.nodeURL, false),
 	)
 
@@ -68,7 +81,34 @@ func (ctrl *SpammerCtrl) Init() error {
 	ctrl.nodeURL = ""
 	ctrl.metrics = make(chan spamalot.Metric)
 	ctrl.listeners = map[int]chan interface{}{}
+	l, err := utilities.GetLogger("spammer")
+	if err != nil {
+		return err
+	}
+	ctrl.logger = l
 
+	powType, _ := giota.GetBestPoW()
+	availablePoWs := giota.GetAvailablePoWFuncs()
+	var a string
+	var i int
+	for powTypeName := range availablePoWs {
+		i++
+		if i == len(availablePoWs) {
+			a += powTypeName
+			continue
+		}
+		a += fmt.Sprintf("%s, ", powTypeName)
+	}
+
+	// auto. switch to PoW C on Mac
+	_, hasPoWC := availablePoWs["PowC"]
+	if runtime.GOOS == "darwin" && hasPoWC {
+		powType = "PowC"
+		ctrl.logger.Info(fmt.Sprintf("using PoW C because of Mac system detection out of [%s]", a))
+	} else {
+		ctrl.logger.Info(fmt.Sprintf("using preferred PoW '%s' out of [%s]", powType, a))
+	}
+	ctrl.powType = powType
 	ctrl.spammer = ctrl.createSpammer()
 	go ctrl.readMetrics()
 
@@ -117,6 +157,7 @@ func (ctrl *SpammerCtrl) State() *StatusMsg {
 	msg := &StatusMsg{}
 	msg.Running = ctrl.spammer.IsRunning()
 	msg.Node = ctrl.nodeURL
+	msg.PoW = ctrl.powType
 	return msg
 }
 
@@ -129,6 +170,30 @@ func (ctrl *SpammerCtrl) ChangeNode(node string) {
 		go ctrl.spammer.Start()
 		<-time.After(time.Duration(1) * time.Second)
 	}
+}
+
+func (ctrl *SpammerCtrl) ChangePoWType(newType string) {
+	if _, ok := giota.GetAvailablePoWFuncs()[newType]; !ok {
+		// crash because this should never be able to be reached in the first place
+		panic("invalid PoW method supplied")
+	}
+	wasRunning := ctrl.spammer.IsRunning()
+	ctrl.Stop()
+	ctrl.logger.Info(fmt.Sprintf("changing PoW to %s", newType))
+	ctrl.powType = newType
+	ctrl.spammer = ctrl.createSpammer()
+	if wasRunning {
+		go ctrl.spammer.Start()
+		<-time.After(time.Duration(1) * time.Second)
+	}
+}
+
+func (ctrl *SpammerCtrl) AvailablePowTypes() []string {
+	s := []string{}
+	for n := range giota.GetAvailablePoWFuncs() {
+		s = append(s, n)
+	}
+	return s
 }
 
 func (ctrl *SpammerCtrl) AddMetricListener(channel chan interface{}) int {

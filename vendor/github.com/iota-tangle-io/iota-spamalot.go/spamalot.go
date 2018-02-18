@@ -26,13 +26,16 @@ SOFTWARE.
 package spamalot
 
 import (
+	"encoding/json"
+	"errors"
 	"log"
 	"math/rand"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/CWarner818/giota"
+	"github.com/cwarner818/giota"
+	"github.com/k0kubun/pp"
 )
 
 const (
@@ -84,6 +87,12 @@ type Spammer struct {
 	strategy    string
 	metrics     *metricsrouter
 	metricRelay chan<- Metric
+
+	db      *Database
+	started time.Time
+	runKey  string
+
+	sendMetrics bool
 }
 
 type Option func(*Spammer) error
@@ -211,6 +220,20 @@ func WithMetricsRelay(relay chan<- Metric) Option {
 	}
 }
 
+func WithDatabase(db *Database) Option {
+	return func(s *Spammer) error {
+		s.db = db
+		return nil
+	}
+}
+
+func WithMessageMetrics(m bool) Option {
+	return func(s *Spammer) error {
+		s.sendMetrics = m
+		return nil
+	}
+}
+
 func (s *Spammer) Close() error {
 	return s.Stop()
 }
@@ -219,6 +242,30 @@ func (s *Spammer) logIfVerbose(str ...interface{}) {
 	if s.verboseLogging {
 		log.Println(str...)
 	}
+}
+
+func (s *Spammer) GetConfirmationRate() (float64, error) {
+	api := giota.NewAPI(s.nodes[0].URL, nil)
+
+	txns, err := s.db.GetSentTransactionHashes()
+	if err != nil {
+		return 0, err
+	}
+	states, err := api.GetLatestInclusion(txns)
+
+	if err != nil {
+		return 0, err
+	}
+
+	var confirmed, total float64
+	total = float64(len(states))
+	for _, s := range states {
+		if s {
+			confirmed++
+		}
+	}
+
+	return confirmed / total * 100, nil
 }
 
 func (s *Spammer) Start() {
@@ -256,7 +303,7 @@ func (s *Spammer) Start() {
 	s.txsChan = make(chan Transaction, 20)
 	s.tipsChan = make(chan Tips, 20)
 	s.stopSignal = make(chan struct{})
-	s.metrics = newMetricsRouter()
+	s.metrics = newMetricsRouter(s.db)
 
 	if s.metricRelay != nil {
 		s.metrics.addRelay(s.metricRelay)
@@ -310,13 +357,55 @@ func (s *Spammer) Start() {
 	for _, node := range s.nodes {
 		nodeAPIs = append(nodeAPIs, apiandnode{giota.NewAPI(node.URL, nil), node.URL})
 	}
+
+	cRateChan := make(chan float64)
+
+	go func() {
+		// If we arent using a database, dont start the go routine
+		if s.db == nil {
+			return
+		}
+		for {
+			select {
+			case <-s.stopSignal:
+				return
+			case <-time.After(60 * time.Second):
+				s.logIfVerbose("Checking confirmation rate")
+				cRate, err := s.GetConfirmationRate()
+				if err != nil {
+					log.Println("Error checking confirmation rate:", err)
+					return
+				}
+				cRateChan <- cRate
+			}
+		}
+	}()
+
 	for {
 		select {
+		case cRate := <-cRateChan:
+			s.metrics.addMetric(SET_CONFIRMATION_RATE, cRate)
+
 		case <-s.stopSignal:
 			return
 		default:
 			tuple := nodeAPIs[rand.Intn(len(s.nodes))]
 			api := tuple.API
+			if s.sendMetrics {
+				metrics := s.metrics.getSummary()
+				msg, err := json.Marshal(metrics)
+				if err != nil {
+					log.Println("Error marshalling metrics:", err)
+					pp.Print(metrics)
+					msg = []byte("metrics error")
+				}
+
+				trs[0].Message, err = giota.FromString(string(msg))
+				if err != nil {
+					log.Println("Error converting message metrics to trytes:", err)
+					trs[0].Message = ""
+				}
+			}
 			bdl, err = giota.PrepareTransfers(api, seed, trs, nil, "", int(s.securityLvl))
 			if err != nil {
 				s.metrics.addMetric(INC_FAILED_TX, nil)
@@ -353,10 +442,11 @@ func (s *Spammer) Start() {
 }
 
 type worker struct {
-	node       Node
-	api        *giota.API
-	spammer    *Spammer
-	stopSignal chan struct{}
+	node        Node
+	api         *giota.API
+	spammer     *Spammer
+	stopSignal  chan struct{}
+	sendMetrics bool
 }
 
 // retrieves tips from the given node and puts them into the tips channel
@@ -439,6 +529,65 @@ func (w worker) getNonZeroTips(tipsChan chan Tips, wg *sync.WaitGroup) {
 	}
 }
 
+// retrieve the tips from the database or fetch them via api and set tips to
+// their completed transactions
+func (w worker) loadOrFetchTips(tips *Tips) error {
+	//Query the database to see if we have the transactions cached
+	storedTxns, err := w.spammer.db.GetTransactions([]giota.Trytes{
+		tips.TrunkHash,
+		tips.BranchHash,
+	})
+
+	if err != nil {
+		return errors.New("Error loading stored tips: " + err.Error())
+	}
+
+	var fetchTrunk, fetchBranch bool
+	fetchTxns := make([]giota.Trytes, 0)
+
+	if storedTxns[0] == nil {
+		fetchTxns = append(fetchTxns, tips.TrunkHash)
+		fetchTrunk = true
+		w.spammer.metrics.addMetric(INC_NEW_CACHED_TX, nil)
+		//log.Println("Fetching trunk:", tips.TrunkHash)
+
+	} else {
+		w.spammer.metrics.addMetric(INC_GET_CACHED_TX, nil)
+		//log.Println("Loaded trunk:", tips.TrunkHash)
+	}
+
+	if storedTxns[1] == nil {
+		fetchTxns = append(fetchTxns, tips.BranchHash)
+		fetchBranch = true
+		w.spammer.metrics.addMetric(INC_NEW_CACHED_TX, nil)
+		//log.Println("Fetching branch:", tips.BranchHash)
+
+	} else {
+		w.spammer.metrics.addMetric(INC_GET_CACHED_TX, nil)
+		//log.Println("Loaded branch:", tips.BranchHash)
+	}
+
+	txns, err := w.api.GetTrytes(fetchTxns)
+	if err != nil {
+		return errors.New("Error fetching new tips: " + err.Error())
+	}
+
+	if fetchTrunk && fetchBranch {
+		tips.Trunk = txns.Trytes[0]
+		tips.Branch = txns.Trytes[1]
+		w.spammer.db.StoreTransactions(txns.Trytes)
+	} else if fetchTrunk {
+		tips.Trunk = txns.Trytes[0]
+		w.spammer.db.StoreTransactions(txns.Trytes)
+	} else if fetchBranch {
+		tips.Branch = txns.Trytes[0]
+		w.spammer.db.StoreTransactions(txns.Trytes)
+	}
+
+	return nil
+
+}
+
 // retrieves tips from the given node and puts them into the tips channel
 func (w worker) getTxnsToApprove(tipsChan chan Tips, wg *sync.WaitGroup) {
 	defer wg.Done()
@@ -447,32 +596,24 @@ func (w worker) getTxnsToApprove(tipsChan chan Tips, wg *sync.WaitGroup) {
 		case <-w.stopSignal:
 			return
 		default:
-			tips, err := w.api.GetTransactionsToApprove(w.spammer.depth, giota.NumberOfWalks, "")
+			tips, err := w.api.GetTransactionsToApprove(w.spammer.depth, giota.DefaultNumberOfWalks, "")
 			if err != nil {
 				w.spammer.logIfVerbose("GetTransactionsToApprove error", err)
 				continue
 			}
 
-			txns, err := w.api.GetTrytes([]giota.Trytes{
-				tips.TrunkTransaction,
-				tips.BranchTransaction,
-			})
-
-			if err != nil {
-				//return nil, err
-				w.spammer.logIfVerbose("GetTrytes error:", err)
-				continue
-			}
-
-			w.spammer.logIfVerbose("Got tips from", w.node.URL)
-
-			tip := Tips{
-				Trunk:      txns.Trytes[0],
+			tip := &Tips{
 				TrunkHash:  tips.TrunkTransaction,
-				Branch:     txns.Trytes[1],
 				BranchHash: tips.BranchTransaction,
 			}
 
+			// Retrieved cached transactions from the database
+			// or fetch them via the IRI API and store them
+			err = w.loadOrFetchTips(tip)
+			if err != nil {
+				w.spammer.logIfVerbose("loadOrFetchTips error", err)
+				continue
+			}
 			select {
 			case <-w.stopSignal:
 				return
@@ -480,9 +621,10 @@ func (w worker) getTxnsToApprove(tipsChan chan Tips, wg *sync.WaitGroup) {
 				select {
 				case <-w.stopSignal:
 					return
-				case tipsChan <- tip:
+				case tipsChan <- *tip:
 				}
 			}
+
 		}
 	}
 }
@@ -573,7 +715,13 @@ func (s *Spammer) Stop() error {
 	s.tipsChan = nil
 
 	// once for tip and once for spam goroutine per node + main loop
-	for i := 0; i < len(s.nodes)*2+1; i++ {
+	// + 1 for confirmation rate checking go routine
+	stops := len(s.nodes)*2 + 1
+	if s.db != nil {
+		stops++
+	}
+
+	for i := 0; i < stops; i++ {
 		s.stopSignal <- struct{}{}
 	}
 
