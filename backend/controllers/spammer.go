@@ -11,6 +11,7 @@ import (
 	"github.com/iota-tangle-io/dtlg/backend/utilities"
 	"runtime"
 	"github.com/coreos/bbolt"
+	"strings"
 )
 
 const DefaultMessage = "DISTRIBUTED9TANGLE9LOAD9GENERATOR"
@@ -47,7 +48,7 @@ func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
 		address += string(alphabet[rand.Intn(len(alphabet))])
 	}
 
-	tag := strings.ToUpper(DefaultTag + "9" + runtime.GOOS + "9" + s)
+	tag := strings.ToUpper(DefaultTag + "9" + runtime.GOOS + "9" + ctrl.powType)
 
 	if ctrl.database != nil {
 		ctrl.database.Close()
