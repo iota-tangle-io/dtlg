@@ -24,6 +24,7 @@ import Snackbar from 'material-ui/Snackbar';
 import {CircularProgress} from 'material-ui/Progress';
 import {NodeEnterModal} from "./NodeEnterModal";
 import Tooltip from 'material-ui/Tooltip';
+import {PoWSelector} from "./PoWSelector";
 
 interface Props {
     spammerStore: SpammerStore;
@@ -75,6 +76,7 @@ const styles: StyleRulesCallback = (theme: Theme) => ({
 class dashboard extends React.Component<Props & WithStyles, {}> {
     componentWillMount() {
         this.props.spammerStore.connect();
+        this.props.spammerStore.loadAvailablePoWs();
     }
 
     start = () => {
@@ -160,6 +162,8 @@ class dashboard extends React.Component<Props & WithStyles, {}> {
                         />
 
                         <NodeSelector/>
+
+                        <PoWSelector/>
 
                         {
                             last_metric &&
