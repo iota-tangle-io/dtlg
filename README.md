@@ -1,4 +1,4 @@
-# DTLG 
+# DTLG [![Build Status](https://travis-ci.org/iota-tangle-io/dtlg.svg?branch=master)](https://travis-ci.org/iota-tangle-io/dtlg)
 
 The Distributed Tangle Load Generator is an application for "spamming" the Tangle with healthy transactions
 in order to increase overall transaction throughput.
