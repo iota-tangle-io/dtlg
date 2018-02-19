@@ -8,10 +8,10 @@
   version = "v1.3.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/cwarner818/giota"
   packages = ["."]
-  revision = "5cc47cf81b66454e819e57093134205a73d42740"
-  version = "v0.1.1"
+  revision = "42af2c1e9c81ba8b5a2976de1b1600a564f816b7"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -55,20 +55,14 @@
 [[projects]]
   name = "github.com/iota-tangle-io/iota-spamalot.go"
   packages = ["."]
-  revision = "01659a315818e03b8af3eaa43945d983c83aad99"
-  version = "v0.1.0"
+  revision = "154c46f5b396897ed8574a5a239e7af4959af151"
+  version = "v0.1.2"
 
 [[projects]]
   branch = "master"
   name = "github.com/iotaledger/giota"
   packages = ["cl"]
   revision = "8df8ad4e8318e74e89d786a22296e7ca8b228dee"
-
-[[projects]]
-  name = "github.com/k0kubun/pp"
-  packages = ["."]
-  revision = "027a6d1765d673d337e687394dbe780dd64e2a1e"
-  version = "v2.3.0"
 
 [[projects]]
   name = "github.com/labstack/echo"
@@ -133,7 +127,7 @@
     "acme",
     "acme/autocert"
   ]
-  revision = "650f4a345ab4e5b245a3034b110ebc7299e68186"
+  revision = "432090b8f568c018896cd8a0fb0345872bbac6ce"
 
 [[projects]]
   branch = "master"
@@ -156,6 +150,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "abfa5a6a1b2243fc04893dea2fdaf12dacd451abd1161a60bd9cf0ee0ba6fa21"
+  inputs-digest = "667cdbdb484f387433a768bc59a4934be26b994236332df28af92e5e7b2897b6"
   solver-name = "gps-cdcl"
   solver-version = 1

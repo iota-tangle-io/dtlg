@@ -66,10 +66,6 @@ func init() {
 	}
 }
 
-func GetAvailablePoWFuncs() map[string]PowFunc {
-	return powFuncs
-}
-
 // GetBestPoW returns most preferable PoW func.
 func GetBestPoW() (string, PowFunc) {
 
@@ -83,6 +79,10 @@ func GetBestPoW() (string, PowFunc) {
 	}
 
 	return "PowGo", PowGo // defualt return PowGo if no others
+}
+
+func GetAvailablePoWFuncs() map[string]PowFunc {
+	return powFuncs
 }
 
 func transform64(lmid *[stateSize]uint64, hmid *[stateSize]uint64) {

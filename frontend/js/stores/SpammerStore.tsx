@@ -35,8 +35,9 @@ let MetricType = {
     INC_SUCCESSFUL_TX: 6,
     INC_NEW_CACHED_TX: 7,
     INC_GET_CACHED_TX: 8,
-    SET_CONFIRMATION_RATE: 9,
-    SUMMARY: 10,
+    INC_CONFIRMED_TX: 9,
+    SET_CONFIRMATION_RATE: 10,
+    SUMMARY: 11,
 }
 
 export class TXData {

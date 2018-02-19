@@ -35,7 +35,6 @@ import (
 	"time"
 
 	"github.com/cwarner818/giota"
-	"github.com/k0kubun/pp"
 )
 
 const (
@@ -244,28 +243,38 @@ func (s *Spammer) logIfVerbose(str ...interface{}) {
 	}
 }
 
-func (s *Spammer) GetConfirmationRate() (float64, error) {
+func (s *Spammer) UpdateConfirmedTransactions() error {
 	api := giota.NewAPI(s.nodes[0].URL, nil)
 
-	txns, err := s.db.GetSentTransactionHashes()
+	txns, err := s.db.GetUnconfirmedTransactionHashes()
 	if err != nil {
-		return 0, err
+		return err
 	}
+
+	if len(txns) == 0 {
+		return nil
+	}
+
 	states, err := api.GetLatestInclusion(txns)
-
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	var confirmed, total float64
-	total = float64(len(states))
-	for _, s := range states {
-		if s {
-			confirmed++
+	var newlyConfirmed []giota.Trytes
+	for i, state := range states {
+		if state {
+			s.metrics.addMetric(INC_CONFIRMED_TX, nil)
+			newlyConfirmed = append(newlyConfirmed, txns[i])
 		}
 	}
 
-	return confirmed / total * 100, nil
+	s.logIfVerbose("Removing", len(newlyConfirmed), "txns from unconfirmed")
+	err = s.db.RemoveConfirmedTransactions(newlyConfirmed)
+	if err != nil {
+		log.Println("Error removing confrimed txns from db:", err)
+	}
+
+	return nil
 }
 
 func (s *Spammer) Start() {
@@ -300,8 +309,8 @@ func (s *Spammer) Start() {
 
 	log.Println("Using IRI nodes:", s.nodes)
 
-	s.txsChan = make(chan Transaction, 20)
-	s.tipsChan = make(chan Tips, 20)
+	s.txsChan = make(chan Transaction)
+	s.tipsChan = make(chan Tips)
 	s.stopSignal = make(chan struct{})
 	s.metrics = newMetricsRouter(s.db)
 
@@ -358,8 +367,6 @@ func (s *Spammer) Start() {
 		nodeAPIs = append(nodeAPIs, apiandnode{giota.NewAPI(node.URL, nil), node.URL})
 	}
 
-	cRateChan := make(chan float64)
-
 	go func() {
 		// If we arent using a database, dont start the go routine
 		if s.db == nil {
@@ -371,20 +378,17 @@ func (s *Spammer) Start() {
 				return
 			case <-time.After(60 * time.Second):
 				s.logIfVerbose("Checking confirmation rate")
-				cRate, err := s.GetConfirmationRate()
+				err := s.UpdateConfirmedTransactions()
 				if err != nil {
 					log.Println("Error checking confirmation rate:", err)
-					return
 				}
-				cRateChan <- cRate
+
 			}
 		}
 	}()
 
 	for {
 		select {
-		case cRate := <-cRateChan:
-			s.metrics.addMetric(SET_CONFIRMATION_RATE, cRate)
 
 		case <-s.stopSignal:
 			return
@@ -396,15 +400,10 @@ func (s *Spammer) Start() {
 				msg, err := json.Marshal(metrics)
 				if err != nil {
 					log.Println("Error marshalling metrics:", err)
-					pp.Print(metrics)
 					msg = []byte("metrics error")
 				}
 
-				trs[0].Message, err = giota.FromString(string(msg))
-				if err != nil {
-					log.Println("Error converting message metrics to trytes:", err)
-					trs[0].Message = ""
-				}
+				trs[0].Message = giota.FromBytes(msg)
 			}
 			bdl, err = giota.PrepareTransfers(api, seed, trs, nil, "", int(s.securityLvl))
 			if err != nil {

@@ -26,7 +26,7 @@ export class TXLog extends React.Component<Props, {}> {
         });
         return (
             <div>
-                <h3>Transactions ({txs.length}) / Confirmation Rate {lastConfirmationRate}%</h3>
+                <h3>Transactions ({txs.length}) / Confirmation Rate {Math.floor(lastConfirmationRate*100)/100}%</h3>
                 <Divider/>
                 <br/>
                 <div className={'tx_log'}>

@@ -43,6 +43,7 @@ const (
 	INC_SUCCESSFUL_TX
 	INC_NEW_CACHED_TX
 	INC_GET_CACHED_TX
+	INC_CONFIRMED_TX
 	SET_CONFIRMATION_RATE
 	SUMMARY
 )
@@ -64,6 +65,7 @@ type Summary struct {
 	ErrorRate         float64 `json:"error_rate"`
 	CachedTX          int     `json:"cached_tx"`
 	RetrievedTX       int     `json:"new_tx"`
+	ConfirmedTX       int     `json:"confirmed_tx"`
 	ConfirmationRate  float64 `json:"confirmation_rate"`
 }
 
@@ -93,9 +95,9 @@ type metricsrouter struct {
 
 	startTime time.Time
 
-	txsSucceeded, txsFailed, badBranch, badTrunk, badTrunkAndBranch int
-	milestoneTrunk, milestoneBranch, txCached, txRetrieved          int
-	confirmationRate                                                float64
+	txsSucceeded, txsFailed, badBranch, badTrunk, badTrunkAndBranch     int
+	milestoneTrunk, milestoneBranch, txCached, txRetrieved, txConfirmed int
+	confirmationRate                                                    float64
 
 	db *Database
 }
@@ -138,6 +140,10 @@ func (mr *metricsrouter) collect() {
 				mr.txCached++
 			case INC_GET_CACHED_TX:
 				mr.txRetrieved++
+			case INC_CONFIRMED_TX:
+				mr.txConfirmed++
+				mr.confirmationRate = float64(mr.txConfirmed) /
+					float64(mr.txsSucceeded) * 100
 			case SET_CONFIRMATION_RATE:
 				mr.confirmationRate = metric.Data.(float64)
 			case INC_SUCCESSFUL_TX:
@@ -154,11 +160,16 @@ func (mr *metricsrouter) collect() {
 func (mr *metricsrouter) getSummary() *Summary {
 	dur := time.Since(mr.startTime)
 	tps := float64(mr.txsSucceeded) / dur.Seconds()
-	successRate := 100 * (float64(mr.txsSucceeded) / (float64(mr.txsSucceeded) + float64(mr.txsFailed)))
+	successRate := 100 * (float64(mr.txsSucceeded) /
+		(float64(mr.txsSucceeded) + float64(mr.txsFailed)))
 
 	errorRate := 100 - successRate
 	if math.IsNaN(errorRate) {
 		errorRate = 0
+	}
+	confirmRate := float64(mr.txConfirmed) / float64(mr.txsSucceeded) * 100
+	if math.IsNaN(confirmRate) {
+		confirmRate = 0
 	}
 	return &Summary{
 		TXsSucceeded:      mr.txsSucceeded,
@@ -172,7 +183,8 @@ func (mr *metricsrouter) getSummary() *Summary {
 		ErrorRate:         errorRate,
 		CachedTX:          mr.txCached,
 		RetrievedTX:       mr.txRetrieved,
-		ConfirmationRate:  mr.confirmationRate,
+		ConfirmedTX:       mr.txConfirmed,
+		ConfirmationRate:  confirmRate,
 	}
 }
 func (mr *metricsrouter) printMetrics(txAndNode txandnode) {
@@ -196,9 +208,14 @@ func (mr *metricsrouter) printMetrics(txAndNode txandnode) {
 	dur := time.Since(mr.startTime)
 	tps := float64(mr.txsSucceeded) / dur.Seconds()
 
+	confirmRate := float64(mr.txConfirmed) / float64(mr.txsSucceeded) * 100
+	if math.IsNaN(confirmRate) {
+		confirmRate = 0
+	}
+
 	// success rate = successful TXs / successful TXs + failed TXs
 	successRate := 100 * (float64(mr.txsSucceeded) / (float64(mr.txsSucceeded) + float64(mr.txsFailed)))
-	log.Printf("%.2f TPS -- success rate %.0f%% Confirmed: %0.2f%%\n", tps, successRate, mr.confirmationRate)
+	log.Printf("%.2f TPS -- success rate %.0f%% Confirmed: %0.2f%%\n", tps, successRate, confirmRate)
 
 	log.Printf("Duration: %s Count: %d Milestone Trunk: %d Milestone Branch: %d Bad Trunk: %d Bad Branch: %d Both: %d Fetched: %d Cached: %d",
 		dur.String(), mr.txsSucceeded, mr.milestoneTrunk,

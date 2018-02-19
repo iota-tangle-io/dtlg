@@ -1,5 +1,6 @@
 // +build sse_pow
 // +build linux,darwin,windows amd64
+
 /*
 MIT License
 

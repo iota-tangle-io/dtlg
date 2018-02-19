@@ -73,10 +73,10 @@ class nodeselector extends React.Component<Props & WithStyles, {}> {
                     onKeyDown={this.updateNode}
                     margin="normal"
                 />
-                <FormHelperText error={!node_valid}>
+                <FormHelperText error={!node_valid} style={{fontSize: 14}}>
                     {
                         node_updated ?
-                            "Node updated."
+                            <span style={{color: "#40d803"}}>Node updated.</span>
                             :
                             updating_node ?
                                 <span>
@@ -84,9 +84,9 @@ class nodeselector extends React.Component<Props & WithStyles, {}> {
                                 </span>
                                 :
                                 node_valid ?
-                                    "Hit enter to save."
+                                    <span style={{color: "#196486"}}>Hit enter in the field to update the node.</span>
                                     :
-                                    "Node URL not valid!"
+                                    "Node URL not valid"
 
                     }
                 </FormHelperText>
