@@ -19,17 +19,18 @@ in order to increase overall transaction throughput.
 1. download the zip file for your operating system from the [release page](https://github.com/iota-tangle-io/dtlg/releases). (darwin is for mac os)
 2. unzip the zip file and execute the binary
 3. your browser opens automatically
-4. enter a node url (choose one from [http://iota.dance/](http://iota.dance/) or other node sites)
+4. enter an IRI node url (you can use http://iota-tangle.io:14265 if you don't have an own node)*
 5. press the start button on the web interface to start generating transactions
 
 ## headless server
 1. download the zip file for your operating system from the [release page](https://github.com/iota-tangle-io/dtlg/releases).
 2. unzip the zip file and execute the binary
 3. Access http://your-ip:9090 to open DTLG
-4. enter a node url (choose one from [http://iota.dance/](http://iota.dance/) or other node sites)
+4. enter an IRI node url (you can use http://iota-tangle.io:14265 if you don't have an own node)*
 5. press the start button on the web interface to start generating transactions
 
-the port and interface on which DTLGs listens for requests can be modified in `configs/network.json`.
+the port and interface on which DTLGs listens for requests can be modified in `configs/network.json`.  
+\* it's discouraged to use public IRI nodes
 
 # proof of work
 DTLG automatically uses the best available PoW method when starting. 
