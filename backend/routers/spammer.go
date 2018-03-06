@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"time"
 	"net/http"
+	"fmt"
 )
 
 var (
@@ -13,8 +14,9 @@ var (
 )
 
 type SpammerRouter struct {
-	WebEngine *echo.Echo               `inject:""`
-	Ctrl      *controllers.SpammerCtrl `inject:""`
+	WebEngine      *echo.Echo               `inject:""`
+	Ctrl           *controllers.SpammerCtrl `inject:""`
+	ShutdownSignal chan struct{}            `json:"shutdown_signal_chan"`
 }
 
 type MsgType byte
@@ -50,6 +52,12 @@ func (router *SpammerRouter) Init() {
 
 	group.GET("/pows", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, powsmsg{router.Ctrl.AvailablePowTypes()})
+	})
+
+	group.GET("/shutdown", func(c echo.Context) error {
+		fmt.Println("shutting down via router")
+		router.ShutdownSignal <- struct{}{}
+		return c.JSON(http.StatusOK, SimpleMsg{"ok"})
 	})
 
 	group.GET("", func(c echo.Context) error {

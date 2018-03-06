@@ -26,7 +26,7 @@ export class TXLog extends React.Component<Props, {}> {
         });
         return (
             <div>
-                <h3>Transactions ({txs.length}) / Confirmation Rate {Math.floor(lastConfirmationRate*100)/100}%</h3>
+                <h3>Transactions ({txs.length})</h3>
                 <Divider/>
                 <br/>
                 <div className={'tx_log'}>
@@ -46,7 +46,7 @@ class TX extends React.Component<{ tx: TXData }, {}> {
                 <a href={`https://thetangle.org/transaction/${tx.hash}`} target="_blank">
                     <i className="fas fa-external-link-alt log_link"></i>
                 </a>
-              |{' '}{tx.hash}
+              |{' '}{tx.hash.substring(0, 30)}...
               {' '} via {tx.node}
           </span>
         );

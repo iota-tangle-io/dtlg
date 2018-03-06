@@ -83,6 +83,19 @@ a {
     font-size: 18px;
   }
 
+  .shutdown_button {
+    position: absolute;
+    top: 15px;
+    right: 30px;
+    font-size: 24px;
+    transition: 0.2s;
+    &:hover {
+      transition: 0.2s;
+      color: $portland_orange;
+      cursor: pointeR;
+    }
+  }
+
   .nav_menu {
     position: absolute;
     left: 200px;
@@ -143,7 +156,7 @@ $midnight_dark: #323e4a;
 .tx_log {
   padding: 10px;
   background: $midnight_dark;
-  height: 400px;
+  height: 195px;
   overflow-y: scroll;
   .log_link{
     color: orange;

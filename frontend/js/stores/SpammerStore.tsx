@@ -3,6 +3,7 @@ import {action, computed, observable, ObservableMap, runInAction} from "mobx";
 import dateformat from 'dateformat';
 import validUrl from 'valid-url';
 import {Model} from "../models/BackOn";
+import axios from "axios";
 
 let MsgType = {
     START: 1,
@@ -99,6 +100,10 @@ export class SpammerStore {
     @observable available_pows: Array<string> = [];
     @observable pow_dialog_open: boolean = false;
 
+    @observable app_shutdown: boolean = false;
+
+    @observable store_txs: boolean = true;
+
     first_node_update_done: boolean = false;
 
     ws: WebSocket = null;
@@ -120,13 +125,18 @@ export class SpammerStore {
 
                         case MetricType.SUMMARY:
                             runInAction('add metric', () => {
-                                this.nextMetricID++;
-                                this.metrics.set(this.nextMetricID.toString(), metric);
+                                if (this.store_txs) {
+                                    this.nextMetricID++;
+                                    this.metrics.set(this.nextMetricID.toString(), metric);
+                                }
                                 this.last_metric = metric.data;
                             });
                             break;
 
                         case MetricType.INC_SUCCESSFUL_TX:
+                            if (!this.store_txs) {
+                                break;
+                            }
                             runInAction('add tx', () => {
                                 let tx: TXData = metric.data;
                                 this.txs.set(tx.hash, metric);
@@ -223,6 +233,24 @@ export class SpammerStore {
         }
     }
 
+    shutdownApp() {
+        axios.get('/api/spammer/shutdown').then(() => {
+            runInAction('shutdown app', () => {
+                this.app_shutdown = true;
+            });
+        });
+    }
+
+    @action
+    changeStoreTXOption(storeTXs: boolean) {
+        if(!storeTXs){
+            // clear previous data if the user want not to log anything
+            this.txs.clear();
+            this.metrics.clear();
+        }
+        this.store_txs = storeTXs;
+    }
+
     @action
     closeEnterNodeModal() {
         this.enter_node_modal_open = false;
@@ -307,6 +335,19 @@ export class SpammerStore {
             a.push({
                 ts: new Date(metric.ts).getTime(),
                 value: metric.data.tps,
+            });
+        });
+        a.sort((a, b) => a.ts < b.ts ? -1 : 1);
+        return a;
+    }
+
+    @computed
+    get confirmationRate(): Array<any> {
+        let a = [];
+        this.metrics.forEach(metric => {
+            a.push({
+                ts: new Date(metric.ts).getTime(),
+                value: metric.data.confirmation_rate,
             });
         });
         a.sort((a, b) => a.ts < b.ts ? -1 : 1);

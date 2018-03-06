@@ -15,9 +15,15 @@ func main() {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 
 	srv.Start()
+	var shutdown = func() {
+		srv.Shutdown(time.Duration(1) * time.Second)
+	}
+
 	select {
+	case <-srv.ShutdownChan:
+		shutdown()
 	case <-sigs:
-		srv.Shutdown(time.Duration(1500) * time.Millisecond)
+		shutdown()
 	}
 
 }

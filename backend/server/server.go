@@ -15,6 +15,7 @@ import (
 	"github.com/skratchdot/open-golang/open"
 	"os"
 	"path/filepath"
+	"gopkg.in/inconshreveable/log15.v2"
 )
 
 type TemplateRendered struct {
@@ -26,12 +27,15 @@ func (t *TemplateRendered) Render(w io.Writer, name string, data interface{}, c 
 }
 
 type Server struct {
-	Config    *Configuration
-	WebEngine *echo.Echo
+	Config       *Configuration
+	WebEngine    *echo.Echo
+	ShutdownChan chan struct{}
+	logger log15.Logger
 }
 
 func (server *Server) Start() {
 	start := time.Now().UnixNano()
+	server.ShutdownChan = make(chan struct{}, 1)
 
 	ex, err := os.Executable()
 	if err != nil {
@@ -51,6 +55,7 @@ func (server *Server) Start() {
 	if err != nil {
 		panic(err)
 	}
+	server.logger = logger
 	logger.Info("booting up app...")
 
 	// init web server
@@ -85,6 +90,7 @@ func (server *Server) Start() {
 	// create routers
 	indexRouter := &routers.IndexRouter{}
 	spammRouter := &routers.SpammerRouter{}
+	spammRouter.ShutdownSignal = server.ShutdownChan
 	rters := []routers.Router{indexRouter, spammRouter}
 
 	// create injection graph for automatic dependency injection
@@ -145,8 +151,10 @@ func (server *Server) Start() {
 }
 
 func (server *Server) Shutdown(timeout time.Duration) {
+	server.logger.Info("shutting down DTLG")
 	select {
 	case <-time.After(timeout):
-		server.WebEngine.Shutdown(context.Background())
+		ctx, _ := context.WithTimeout(context.Background(), timeout)
+		server.WebEngine.Shutdown(ctx)
 	}
 }

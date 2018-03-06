@@ -12,19 +12,17 @@ import Paper from "material-ui/Paper";
 import Divider from "material-ui/Divider";
 import {TXLog} from "./TXLog";
 import Chip from "material-ui/Chip";
-import Avatar from "material-ui/Avatar";
-import Select from "material-ui/Select";
-import Input, {InputLabel} from 'material-ui/Input';
-import {FormControl, FormHelperText} from 'material-ui/Form';
-import {MenuItem} from 'material-ui/Menu';
 import {NodeSelector} from "./NodeSelector";
 import {SnackbarContent} from 'material-ui/Snackbar';
+import Switch from 'material-ui/Switch';
 import Snackbar from 'material-ui/Snackbar';
+import {FormGroup, FormControlLabel} from 'material-ui/Form';
 
 import {CircularProgress} from 'material-ui/Progress';
 import {NodeEnterModal} from "./NodeEnterModal";
 import Tooltip from 'material-ui/Tooltip';
 import {PoWSelector} from "./PoWSelector";
+import {ConfirmationRateChart} from "./ConfirmationRateChart";
 
 interface Props {
     spammerStore: SpammerStore;
@@ -50,7 +48,7 @@ const styles: StyleRulesCallback = (theme: Theme) => ({
         marginBottom: theme.spacing.unit * 3,
     },
     chip: {
-        marginRight: theme.spacing.unit,
+        marginRight: theme.spacing.unit * 1.5,
     },
     lastMetricInfo: {
         marginTop: theme.spacing.unit * 3,
@@ -87,12 +85,17 @@ class dashboard extends React.Component<Props & WithStyles, {}> {
         this.props.spammerStore.stop();
     }
 
+    changeStoreTXOption = (e: any) => {
+        this.props.spammerStore.changeStoreTXOption(!e.target.checked);
+    }
+
     render() {
         let {running, connected, last_metric, node, disable_controls} = this.props.spammerStore;
-        let {starting, stopping} = this.props.spammerStore;
+        let {starting, stopping, app_shutdown, store_txs} = this.props.spammerStore;
         let classes = this.props.classes;
 
         if (!connected) {
+            if (app_shutdown) return <span></span>;
             return (
                 <Grid>
                     <h3>Waiting for WebSocket connection...</h3>
@@ -165,9 +168,44 @@ class dashboard extends React.Component<Props & WithStyles, {}> {
 
                         <PoWSelector/>
 
+                        <span style={{marginLeft: '10px'}}>
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={!store_txs}
+                                        onChange={this.changeStoreTXOption}
+                                        value="checkedA"
+                                        color="primary"
+                                    />
+                                }
+                                label="Hide charts and log (saves browser memory)"
+                            />
+                        </span>
+
                         {
                             last_metric &&
                             <div className={classes.lastMetricInfo}>
+                                <Tooltip id="tooltip-icon" classes={{popper: classes.tooltip}}
+                                         className={classes.tooltip}
+                                         title="Current transaction per second count"
+                                         placement="top">
+                                    <Chip label={"TPS " + Math.floor(last_metric.tps * 100) / 100}
+                                          className={classes.chip}/>
+                                </Tooltip>
+                                <Tooltip id="tooltip-icon" classes={{popper: classes.tooltip}}
+                                         className={classes.tooltip}
+                                         title="Current confirmation rate"
+                                         placement="top">
+                                    <Chip label={"Conf. Rate " + Math.floor(last_metric.confirmation_rate * 100) / 100 + "%"}
+                                          className={classes.chip}/>
+                                </Tooltip>
+                                <Tooltip id="tooltip-icon" classes={{popper: classes.tooltip}}
+                                         className={classes.tooltip}
+                                         title="Current error rate"
+                                         placement="top">
+                                    <Chip label={"Error Rate " + Math.floor(last_metric.error_rate * 100) / 100 + "%"}
+                                          className={classes.chip}/>
+                                </Tooltip>
                                 <Tooltip id="tooltip-icon" classes={{popper: classes.tooltip}}
                                          className={classes.tooltip}
                                          title="Times a DTLG TX used another DTLG TX as branch"
@@ -204,28 +242,40 @@ class dashboard extends React.Component<Props & WithStyles, {}> {
                     </Grid>
                 </Grid>
 
-                <Grid container className={classes.root}>
-                    <Grid item xs={12} lg={6}>
-                        <Paper className={classes.paper}>
-                            <h3>TPS {Math.floor(last_metric.tps * 100) / 100}</h3>
-                            <Divider className={classes.divider}/>
-                            <TPSChart/>
-                        </Paper>
-                    </Grid>
-                    <Grid item xs={12} lg={6}>
-                        <Paper className={classes.paper}>
-                            <h3>Error Rate {Math.floor(last_metric.error_rate * 100) / 100}%</h3>
-                            <Divider className={classes.divider}/>
-                            <ErrorRateChart/>
-                        </Paper>
-                    </Grid>
-                </Grid>
+                {
+                    store_txs &&
+                    <div>
+                        <Grid container className={classes.root}>
+                            <Grid item xs={12} lg={6}>
+                                <Paper className={classes.paper}>
+                                    <h3>TPS</h3>
+                                    <Divider className={classes.divider}/>
+                                    <TPSChart/>
+                                </Paper>
+                            </Grid>
+                            <Grid item xs={12} lg={6}>
+                                <Paper className={classes.paper}>
+                                    <h3>Confirmation Rate</h3>
+                                    <Divider className={classes.divider}/>
+                                    <ConfirmationRateChart/>
+                                </Paper>
+                            </Grid>
+                            <Grid item xs={12} lg={6}>
+                                <Paper className={classes.paper}>
+                                    <h3>Error Rate</h3>
+                                    <Divider className={classes.divider}/>
+                                    <ErrorRateChart/>
+                                </Paper>
+                            </Grid>
+                            <Grid item xs={12} lg={6}>
+                                <Paper className={classes.paper}>
+                                    <TXLog/>
+                                </Paper>
+                            </Grid>
+                        </Grid>
+                    </div>
+                }
 
-                <Grid item xs={12} lg={12} className={classes.root}>
-                    <Paper className={classes.paper}>
-                        <TXLog/>
-                    </Paper>
-                </Grid>
 
             </Grid>
         );
