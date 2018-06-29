@@ -12,12 +12,14 @@ let MsgType = {
     STATE: 4,
     CHANGE_NODE: 5,
     CHANGE_POW: 6,
+    CHANGE_TAG: 7,
 };
 
 class StateMsg {
     running: boolean;
     node: string;
     pow: string;
+    tag: string;
 }
 
 class WsMsg {
@@ -94,6 +96,10 @@ export class SpammerStore {
     @observable node_valid: boolean = false;
     @observable updating_node: boolean = false;
     @observable node_updated: boolean = false;
+
+    @observable tag: string = "";
+    @observable tag_updated: boolean = false;
+    @observable updating_tag: boolean = false;
 
     @observable pow: string = "";
     @observable updating_pow: boolean = false;
@@ -177,8 +183,18 @@ export class SpammerStore {
                             this.node_valid = true;
                         }
 
+                        if (this.previous_state.tag !== stateMsg.tag) {
+                            this.disable_controls = false;
+                            this.updating_tag = false;
+                            if (this.previous_state.tag) {
+                                this.tag_updated = true;
+                            }
+                            this.tag = stateMsg.tag;
+                        }
+
                         if (!this.node && stateMsg.node && !this.first_node_update_done) {
                             this.node = stateMsg.node;
+                            this.tag = stateMsg.tag;
                             this.first_node_update_done = true;
                         }
 
@@ -243,7 +259,7 @@ export class SpammerStore {
 
     @action
     changeStoreTXOption(storeTXs: boolean) {
-        if(!storeTXs){
+        if (!storeTXs) {
             // clear previous data if the user want not to log anything
             this.txs.clear();
             this.metrics.clear();
@@ -273,6 +289,24 @@ export class SpammerStore {
         if (this.previous_state.node === this.node || !this.node_valid) return;
         this.disable_controls = true;
         this.updating_node = true;
+        this.ws.send(JSON.stringify(msg));
+    }
+
+    @action
+    changeTag(tag: string) {
+        this.tag_updated = false;
+        this.tag = tag;
+    }
+
+    @action
+    updateTag() {
+        if (!this.connected) return;
+        let msg = new WsMsg();
+        msg.msg_type = MsgType.CHANGE_TAG;
+        msg.data = this.tag;
+        if (this.previous_state.tag === this.tag) return;
+        this.disable_controls = true;
+        this.updating_tag = true;
         this.ws.send(JSON.stringify(msg));
     }
 

@@ -30,6 +30,7 @@ const (
 	STATE       MsgType = 4
 	CHANGE_NODE MsgType = 5
 	CHANGE_POW  MsgType = 6
+	CHANGE_TAG  MsgType = 7
 )
 
 type wsmsg struct {
@@ -135,6 +136,8 @@ func (router *SpammerRouter) Init() {
 				router.Ctrl.ChangeNode(msg.Data.(string))
 			case CHANGE_POW:
 				router.Ctrl.ChangePoWType(msg.Data.(string))
+			case CHANGE_TAG:
+				router.Ctrl.ChangeTag(msg.Data.(string))
 			}
 
 			// auto send state after each received command

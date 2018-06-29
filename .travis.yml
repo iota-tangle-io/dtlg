@@ -6,7 +6,7 @@ if: tag IS present
 matrix:
   include:
     - language: go
-      go: "1.10"
+      go: "1.10.3"
       env: VER=linux-win
       before_install:
         - sudo apt update -y

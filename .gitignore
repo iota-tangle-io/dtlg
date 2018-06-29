@@ -8,3 +8,4 @@ backend/cmd/dtlg.db
 backend/cmd/dtlg.db.lock
 backend/cmd/spamalot.db
 backend/cmd/spamalot.db.lock
+backend/cmd/*.exe
