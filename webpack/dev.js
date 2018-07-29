@@ -19,6 +19,7 @@ module.exports = env => {
                 join(__dirname, '../frontend/js/entry.tsx') // the entry point of our app
             ]
         },
+        mode: 'development',
         output: {
             filename: 'bundle.js',
             path: outputPath,

@@ -16,7 +16,6 @@ moment.locale("en-us");
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {BrowserRouter} from 'react-router-dom';
-import {useStrict} from 'mobx';
 import {Provider} from 'mobx-react';
 import {AppContainer} from 'react-hot-loader';
 import {App} from './comps/App';
@@ -24,9 +23,6 @@ import {App} from './comps/App';
 // stores
 import {AppStoreInstance as appStore} from "./stores/AppStore";
 import {SpammerStoreInstance as spammerStore} from "./stores/SpammerStore";
-
-// use MobX in strict mode
-useStrict(true);
 
 let stores = {appStore, spammerStore};
 

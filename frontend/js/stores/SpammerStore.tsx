@@ -1,6 +1,5 @@
 ///<reference path="../../../node_modules/mobx/lib/api/computed.d.ts"/>
 import {action, computed, observable, ObservableMap, runInAction} from "mobx";
-import dateformat from 'dateformat';
 import validUrl from 'valid-url';
 import {Model} from "../models/BackOn";
 import axios from "axios";
@@ -83,8 +82,8 @@ export class AvailablePoWsReq extends Model {
 export class SpammerStore {
     @observable running: boolean = false;
     @observable connected: boolean = false;
-    @observable metrics: ObservableMap<Metric> = observable.map();
-    @observable txs: ObservableMap<Metric> = observable.map();
+    @observable metrics: ObservableMap<string, Metric> = observable.map();
+    @observable txs: ObservableMap<string, Metric> = observable.map();
     @observable last_metric: MetricSummary = new MetricSummary();
     @observable disable_controls: boolean = false;
     @observable starting: boolean = false;

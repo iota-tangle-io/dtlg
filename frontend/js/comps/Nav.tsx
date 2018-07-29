@@ -1,13 +1,10 @@
 import * as React from 'react';
-import axios, {AxiosPromise, AxiosResponse} from 'axios';
 import {inject, observer} from "mobx-react";
 import {SpammerStore} from "../stores/SpammerStore";
-import Dialog, {
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-} from 'material-ui/Dialog';
+import Dialog from '@material-ui/core/Dialog';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 
 interface Props {
     spammerStore?: SpammerStore;

@@ -1,27 +1,35 @@
 import * as React from 'react';
 import {inject, observer} from "mobx-react";
-import {withRouter} from "react-router";
 import {
-    AreaChart, Area, ReferenceLine,
-    LineChart, ComposedChart, Brush, XAxis, Line, YAxis,
-    CartesianGrid, Tooltip, Legend, ResponsiveContainer
+    Area,
+    AreaChart,
+    Brush,
+    CartesianGrid,
+    ComposedChart,
+    Legend,
+    Line,
+    LineChart,
+    ReferenceLine,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis
 } from 'recharts';
 import {SpammerStore} from "../stores/SpammerStore";
-import Select from "material-ui/Select";
-import {StyleRulesCallback, Theme} from "material-ui/styles";
-import Input, {InputLabel} from 'material-ui/Input';
-import {FormControl, FormHelperText} from 'material-ui/Form';
-import {MenuItem} from 'material-ui/Menu';
-import {WithStyles, TextField} from "material-ui";
-import withStyles from "material-ui/styles/withStyles";
-import {CircularProgress} from 'material-ui/Progress';
-import Dialog, {
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-} from 'material-ui/Dialog';
-import Button from "material-ui/Button";
+import Select from "@material-ui/core/Select";
+import {StyleRulesCallback, Theme} from "@material-ui/core/styles";
+import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
+import FormControl from '@material-ui/core/FormControl';
+import {WithStyles} from "@material-ui/core";
+import withStyles from "@material-ui/core/styles/withStyles";
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Dialog from '@material-ui/core/Dialog';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogActions from '@material-ui/core/DialogActions';
+import Button from "@material-ui/core/Button";
 
 
 interface Props {

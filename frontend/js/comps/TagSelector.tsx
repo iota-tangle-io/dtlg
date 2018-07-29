@@ -1,21 +1,27 @@
 import * as React from 'react';
 import {inject, observer} from "mobx-react";
-import {withRouter} from "react-router";
 import {
-    AreaChart, Area, ReferenceLine,
-    LineChart, ComposedChart, Brush, XAxis, Line, YAxis,
-    CartesianGrid, Tooltip, Legend, ResponsiveContainer
+    Area,
+    AreaChart,
+    Brush,
+    CartesianGrid,
+    ComposedChart,
+    Legend,
+    Line,
+    LineChart,
+    ReferenceLine,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis
 } from 'recharts';
 import {SpammerStore} from "../stores/SpammerStore";
-import Select from "material-ui/Select";
-import {StyleRulesCallback, Theme} from "material-ui/styles";
-import Input, {InputLabel} from 'material-ui/Input';
-import {FormControl, FormHelperText} from 'material-ui/Form';
-import {MenuItem} from 'material-ui/Menu';
-import {WithStyles, TextField} from "material-ui";
-import withStyles from "material-ui/styles/withStyles";
-import {CircularProgress} from 'material-ui/Progress';
-
+import {StyleRulesCallback, Theme} from "@material-ui/core/styles";
+import FormControl from '@material-ui/core/FormControl';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import {TextField, WithStyles} from "@material-ui/core";
+import withStyles from "@material-ui/core/styles/withStyles";
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 interface Props {
     spammerStore?: SpammerStore;

@@ -1,26 +1,25 @@
 import * as React from 'react';
 import {inject, observer} from "mobx-react";
-import Grid from "material-ui/Grid";
+import Grid from "@material-ui/core/Grid";
 import {SpammerStore} from "../stores/SpammerStore";
-import Button from "material-ui/Button";
-import withStyles from "material-ui/styles/withStyles";
-import {StyleRulesCallback, Theme} from "material-ui/styles";
-import {WithStyles} from "material-ui";
+import Button from "@material-ui/core/Button";
+import withStyles from "@material-ui/core/styles/withStyles";
+import {StyleRulesCallback, Theme} from "@material-ui/core/styles";
+import {WithStyles} from "@material-ui/core";
 import {TPSChart} from "./TPSChart";
 import {ErrorRateChart} from "./ErrorRateChart";
-import Paper from "material-ui/Paper";
-import Divider from "material-ui/Divider";
+import Paper from "@material-ui/core/Paper";
+import Divider from "@material-ui/core/Divider";
 import {TXLog} from "./TXLog";
-import Chip from "material-ui/Chip";
+import Chip from "@material-ui/core/Chip";
 import {NodeSelector} from "./NodeSelector";
-import {SnackbarContent} from 'material-ui/Snackbar';
-import Switch from 'material-ui/Switch';
-import Snackbar from 'material-ui/Snackbar';
-import {FormGroup, FormControlLabel} from 'material-ui/Form';
+import Switch from '@material-ui/core/Switch';
+import Snackbar from '@material-ui/core/Snackbar';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 
-import {CircularProgress} from 'material-ui/Progress';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import {NodeEnterModal} from "./NodeEnterModal";
-import Tooltip from 'material-ui/Tooltip';
+import Tooltip from '@material-ui/core/Tooltip';
 import {PoWSelector} from "./PoWSelector";
 import {ConfirmationRateChart} from "./ConfirmationRateChart";
 import {TagSelector} from "./TagSelector";
@@ -143,7 +142,7 @@ class dashboard extends React.Component<Props & WithStyles, {}> {
                             autoHideDuration={6000}
                             onClose={() => {
                             }}
-                            SnackbarContentProps={{
+                            ContentProps={{
                                 'aria-describedby': 'message-id',
                             }}
                             message={
@@ -188,28 +187,28 @@ class dashboard extends React.Component<Props & WithStyles, {}> {
                             last_metric &&
                             <div className={classes.lastMetricInfo}>
                                 <Tooltip id="tooltip-icon" classes={{popper: classes.tooltip}}
-                                         className={classes.tooltip}
+
                                          title="Current transaction per second count"
                                          placement="top">
                                     <Chip label={"TPS " + Math.floor(last_metric.tps * 100) / 100}
                                           className={classes.chip}/>
                                 </Tooltip>
                                 <Tooltip id="tooltip-icon" classes={{popper: classes.tooltip}}
-                                         className={classes.tooltip}
+
                                          title="Current confirmation rate"
                                          placement="top">
                                     <Chip label={"Conf. Rate " + Math.floor(last_metric.confirmation_rate * 100) / 100 + "%"}
                                           className={classes.chip}/>
                                 </Tooltip>
                                 <Tooltip id="tooltip-icon" classes={{popper: classes.tooltip}}
-                                         className={classes.tooltip}
+
                                          title="Current error rate"
                                          placement="top">
                                     <Chip label={"Error Rate " + Math.floor(last_metric.error_rate * 100) / 100 + "%"}
                                           className={classes.chip}/>
                                 </Tooltip>
                                 <Tooltip id="tooltip-icon" classes={{popper: classes.tooltip}}
-                                         className={classes.tooltip}
+
                                          title="Times a DTLG TX used another DTLG TX as branch"
                                          placement="top">
                                     <Chip label={"Branch " + last_metric.bad_branch} className={classes.chip}/>
@@ -247,7 +246,7 @@ class dashboard extends React.Component<Props & WithStyles, {}> {
                 {
                     store_txs &&
                     <div>
-                        <Grid container className={classes.root}>
+                        <Grid container className={classes.root} spacing={16}>
                             <Grid item xs={12} lg={6}>
                                 <Paper className={classes.paper}>
                                     <h3>TPS</h3>

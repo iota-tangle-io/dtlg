@@ -1,10 +1,19 @@
 import * as React from 'react';
 import {inject, observer} from "mobx-react";
-import {withRouter} from "react-router";
 import {
-    AreaChart, Area, ReferenceLine,
-    LineChart, ComposedChart, Brush, XAxis, Line, YAxis,
-    CartesianGrid, Tooltip, Legend, ResponsiveContainer
+    Area,
+    AreaChart,
+    Brush,
+    CartesianGrid,
+    ComposedChart,
+    Legend,
+    Line,
+    LineChart,
+    ReferenceLine,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis
 } from 'recharts';
 import {SpammerStore} from "../stores/SpammerStore";
 import dateformat from 'dateformat';
