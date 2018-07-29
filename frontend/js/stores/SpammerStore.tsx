@@ -405,7 +405,7 @@ export class SpammerStore {
     get transactions(): Array<any> {
         let a = [];
         this.txs.forEach(metricTxs => {
-            let data: TXData = metricTxs.data;
+            let data: TXData = Object.assign({}, metricTxs.data);
             data.created_on = metricTxs.ts;
             a.push(data);
         });
