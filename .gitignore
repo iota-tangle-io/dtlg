@@ -4,6 +4,7 @@ frontend/js/bundle.min.js
 backend/cmd/tmp/
 backend/cmd/logs/
 backend/cmd/cmd.exe
+backend/cmd/cmd.exe~
 backend/cmd/dtlg.db
 backend/cmd/dtlg.db.lock
 backend/cmd/spamalot.db

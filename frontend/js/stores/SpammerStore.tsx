@@ -12,6 +12,7 @@ let MsgType = {
     CHANGE_NODE: 5,
     CHANGE_POW: 6,
     CHANGE_TAG: 7,
+    CHANGE_ADDRESS: 8,
 };
 
 class StateMsg {
@@ -19,6 +20,7 @@ class StateMsg {
     node: string;
     pow: string;
     tag: string;
+    address: string;
 }
 
 class WsMsg {
@@ -99,6 +101,10 @@ export class SpammerStore {
     @observable tag: string = "";
     @observable tag_updated: boolean = false;
     @observable updating_tag: boolean = false;
+
+    @observable address: string = "";
+    @observable address_updated: boolean = false;
+    @observable updating_address: boolean = false;
 
     @observable pow: string = "";
     @observable updating_pow: boolean = false;
@@ -191,9 +197,19 @@ export class SpammerStore {
                             this.tag = stateMsg.tag;
                         }
 
+                        if (this.previous_state.address !== stateMsg.address) {
+                            this.disable_controls = false;
+                            this.updating_address = false;
+                            if (this.previous_state.address) {
+                                this.address_updated = true;
+                            }
+                            this.address = stateMsg.address;
+                        }
+
                         if (!this.node && stateMsg.node && !this.first_node_update_done) {
                             this.node = stateMsg.node;
                             this.tag = stateMsg.tag;
+                            this.address = stateMsg.address;
                             this.first_node_update_done = true;
                         }
 
@@ -306,6 +322,24 @@ export class SpammerStore {
         if (this.previous_state.tag === this.tag) return;
         this.disable_controls = true;
         this.updating_tag = true;
+        this.ws.send(JSON.stringify(msg));
+    }
+
+    @action
+    changeAddress(address: string) {
+        this.address_updated = false;
+        this.address = address;
+    }
+
+    @action
+    updateAddress() {
+        if (!this.connected) return;
+        let msg = new WsMsg();
+        msg.msg_type = MsgType.CHANGE_ADDRESS;
+        msg.data = this.address;
+        if (this.previous_state.address === this.address) return;
+        this.disable_controls = true;
+        this.updating_address = true;
         this.ws.send(JSON.stringify(msg));
     }
 

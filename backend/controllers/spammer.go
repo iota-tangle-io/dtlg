@@ -17,6 +17,7 @@ import (
 const DefaultMessage = "DISTRIBUTED9TANGLE9LOAD9GENERATOR"
 const DefaultTag = "999DTLG"
 const TagLength = 27
+const AddressLength = 90
 
 var TryteAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9"
 
@@ -25,6 +26,7 @@ type StatusMsg struct {
 	Node    string `json:"node"`
 	PoW     string `json:"pow"`
 	Tag     string `json:"tag"`
+	Address string `json:"address"`
 }
 
 type SpammerCtrl struct {
@@ -41,6 +43,7 @@ type SpammerCtrl struct {
 	nodeURL  string
 	powType  string
 	tag      string
+	address  string
 	logger   log15.Logger
 	database *spamalot.Database
 }
@@ -56,6 +59,10 @@ func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
 		tag = strings.ToUpper(DefaultTag + "9" + runtime.GOOS + "9" + ctrl.powType)
 	} else {
 		tag = ctrl.tag
+	}
+
+	if len(ctrl.address) != 0 {
+		address = ctrl.address
 	}
 
 	if ctrl.database != nil {
@@ -74,6 +81,7 @@ func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
 		spamalot.WithDepth(giota.Depth),
 		spamalot.ToAddress(address),
 		spamalot.WithTag(tag),
+		spamalot.ToAddress(address),
 		spamalot.WithMessage(DefaultMessage),
 		spamalot.WithVerboseLogging(true),
 		spamalot.WithSecurityLevel(spamalot.SecurityLevel(2)),
@@ -170,6 +178,7 @@ func (ctrl *SpammerCtrl) State() *StatusMsg {
 	msg.Node = ctrl.nodeURL
 	msg.PoW = ctrl.powType
 	msg.Tag = ctrl.tag
+	msg.Address = ctrl.address
 	return msg
 }
 
@@ -177,6 +186,39 @@ func (ctrl *SpammerCtrl) ChangeNode(node string) {
 	wasRunning := ctrl.spammer.IsRunning()
 	ctrl.Stop()
 	ctrl.nodeURL = node
+	ctrl.spammer = ctrl.createSpammer()
+	if wasRunning {
+		go ctrl.spammer.Start()
+		<-time.After(time.Duration(1) * time.Second)
+	}
+}
+
+func (ctrl *SpammerCtrl) ChangeAddress(address string) {
+	wasRunning := ctrl.spammer.IsRunning()
+	ctrl.Stop()
+	address = strings.TrimSpace(address)
+	address = strings.ToUpper(address)
+	for i := 0; i < len(address); i++ {
+		letter := string(address[i])
+		if strings.Index(TryteAlphabet, letter) == -1 {
+			if i+1 == len(address) {
+				address = address[:i] + "9"
+			} else {
+				address = address[:i] + "9" + address[i+1:]
+			}
+		}
+	}
+
+	toPad := AddressLength - len(address)
+	if toPad > 0 {
+		for ; toPad > 0; toPad-- {
+			address += "9"
+		}
+	} else if toPad < 0 {
+		address = address[:AddressLength]
+	}
+
+	ctrl.address = address
 	ctrl.spammer = ctrl.createSpammer()
 	if wasRunning {
 		go ctrl.spammer.Start()
@@ -192,10 +234,10 @@ func (ctrl *SpammerCtrl) ChangeTag(tag string) {
 	for i := 0; i < len(tag); i++ {
 		letter := string(tag[i])
 		if strings.Index(TryteAlphabet, letter) == -1 {
-			if i + 1 == len(tag) {
+			if i+1 == len(tag) {
 				tag = tag[:i] + "9"
-			}else{
-				tag = tag[:i] + "9" + tag[i+1:len(tag)]
+			} else {
+				tag = tag[:i] + "9" + tag[i+1:]
 			}
 		}
 	}
@@ -205,7 +247,7 @@ func (ctrl *SpammerCtrl) ChangeTag(tag string) {
 			tag += "9"
 		}
 	} else if toPad < 0 {
-		tag = tag[:27]
+		tag = tag[:TagLength]
 	}
 	ctrl.tag = tag
 	ctrl.spammer = ctrl.createSpammer()

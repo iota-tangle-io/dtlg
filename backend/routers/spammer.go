@@ -24,13 +24,14 @@ type MsgType byte
 const (
 	SERVER_READ_ERROR MsgType = 0
 
-	START       MsgType = 1
-	STOP        MsgType = 2
-	METRIC      MsgType = 3
-	STATE       MsgType = 4
-	CHANGE_NODE MsgType = 5
-	CHANGE_POW  MsgType = 6
-	CHANGE_TAG  MsgType = 7
+	START          MsgType = 1
+	STOP           MsgType = 2
+	METRIC         MsgType = 3
+	STATE          MsgType = 4
+	CHANGE_NODE    MsgType = 5
+	CHANGE_POW     MsgType = 6
+	CHANGE_TAG     MsgType = 7
+	CHANGE_ADDRESS MsgType = 8
 )
 
 type wsmsg struct {
@@ -138,6 +139,8 @@ func (router *SpammerRouter) Init() {
 				router.Ctrl.ChangePoWType(msg.Data.(string))
 			case CHANGE_TAG:
 				router.Ctrl.ChangeTag(msg.Data.(string))
+			case CHANGE_ADDRESS:
+				router.Ctrl.ChangeAddress(msg.Data.(string))
 			}
 
 			// auto send state after each received command

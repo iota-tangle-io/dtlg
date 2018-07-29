@@ -23,6 +23,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import {PoWSelector} from "./PoWSelector";
 import {ConfirmationRateChart} from "./ConfirmationRateChart";
 import {TagSelector} from "./TagSelector";
+import {AddressSelector} from "./AddressSelector";
 
 interface Props {
     spammerStore: SpammerStore;
@@ -166,7 +167,7 @@ class dashboard extends React.Component<Props & WithStyles, {}> {
 
                         <NodeSelector/>
                         <TagSelector/>
-
+                        <AddressSelector/>
                         <PoWSelector/>
 
                         <span style={{marginLeft: '10px'}}>
