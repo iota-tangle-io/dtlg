@@ -14,8 +14,9 @@ matrix:
         - /usr/bin/x86_64-w64-mingw32-gcc --version
       install:
         - npm i
-        - npm i -g webpack@3.9.1
-        - npm i -g typescript@2.6.2
+        - npm i -g webpack@4.16.3
+        - npm i -g webpack-cli@3.1.0
+        - npm i -g typescript@2.9.2
       script:
         - npm run build # compile frontend bundle
         - cd backend/cmd
@@ -58,8 +59,9 @@ matrix:
       env: VER=darwin
       install:
         - npm i
-        - npm i -g webpack@3.9.1
-        - npm i -g typescript@2.6.2
+        - npm i -g webpack@4.16.3
+        - npm i -g webpack-cli@3.1.0
+        - npm i -g typescript@2.9.2
       script:
         - npm run build
         - cd backend/cmd

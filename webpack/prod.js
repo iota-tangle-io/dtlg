@@ -17,6 +17,9 @@ module.exports = merge(commonConfig, {
     },
     devtool: 'source-map',
     mode: 'production',
+    optimization: {
+        minimize: true
+    },
     plugins: [
         new webpack.DefinePlugin({
             'process.env.NODE_ENV': JSON.stringify('production'),
@@ -24,17 +27,5 @@ module.exports = merge(commonConfig, {
             __DEVELOPMENT__: JSON.stringify(false),
             BUILD_TIME: JSON.stringify(Date.now()),
         }),
-        new webpack.optimize.UglifyJsPlugin({
-            compress: {
-                'screw_ie8': true,
-                'warnings': false,
-                'unused': true,
-                'dead_code': true,
-            },
-            output: {
-                comments: false,
-            },
-            sourceMap: false,
-        })
     ],
 });
