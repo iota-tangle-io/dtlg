@@ -32,6 +32,7 @@ const (
 	CHANGE_POW     MsgType = 6
 	CHANGE_TAG     MsgType = 7
 	CHANGE_ADDRESS MsgType = 8
+	CHANGE_DEPTH MsgType = 9
 )
 
 type wsmsg struct {
@@ -141,6 +142,8 @@ func (router *SpammerRouter) Init() {
 				router.Ctrl.ChangeTag(msg.Data.(string))
 			case CHANGE_ADDRESS:
 				router.Ctrl.ChangeAddress(msg.Data.(string))
+			case CHANGE_DEPTH:
+				router.Ctrl.ChangeDepth(int(msg.Data.(float64)))
 			}
 
 			// auto send state after each received command

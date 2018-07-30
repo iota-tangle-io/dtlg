@@ -24,6 +24,7 @@ import {PoWSelector} from "./PoWSelector";
 import {ConfirmationRateChart} from "./ConfirmationRateChart";
 import {TagSelector} from "./TagSelector";
 import {AddressSelector} from "./AddressSelector";
+import {DepthSelector} from "./DepthSelector";
 
 interface Props {
     spammerStore: SpammerStore;
@@ -109,7 +110,6 @@ class dashboard extends React.Component<Props & WithStyles, {}> {
                 <h1>Dashboard</h1>
                 <Grid container className={classes.root}>
                     <Grid item xs={12} lg={12}>
-
                         <NodeEnterModal/>
 
                         <Button className={classes.button} onClick={this.start}
@@ -133,6 +133,18 @@ class dashboard extends React.Component<Props & WithStyles, {}> {
                                 <CircularProgress className="button_loader" size={20}/>
                             }
                         </Button>
+
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={!store_txs}
+                                    onChange={this.changeStoreTXOption}
+                                    value="checkedA"
+                                    color="primary"
+                                />
+                            }
+                            label="Hide charts and log (saves browser memory)"
+                        />
 
                         <Snackbar
                             anchorOrigin={{
@@ -164,25 +176,17 @@ class dashboard extends React.Component<Props & WithStyles, {}> {
                                 </span>
                             }
                         />
+                    </Grid>
 
+                    <Grid item xs={12} lg={12}>
                         <NodeSelector/>
                         <TagSelector/>
+                        <DepthSelector/>
                         <AddressSelector/>
                         <PoWSelector/>
+                    </Grid>
 
-                        <span style={{marginLeft: '10px'}}>
-                            <FormControlLabel
-                                control={
-                                    <Switch
-                                        checked={!store_txs}
-                                        onChange={this.changeStoreTXOption}
-                                        value="checkedA"
-                                        color="primary"
-                                    />
-                                }
-                                label="Hide charts and log (saves browser memory)"
-                            />
-                        </span>
+                    <Grid item xs={12} lg={12}>
 
                         {
                             last_metric &&
@@ -198,8 +202,9 @@ class dashboard extends React.Component<Props & WithStyles, {}> {
 
                                          title="Current confirmation rate"
                                          placement="top">
-                                    <Chip label={"Conf. Rate " + Math.floor(last_metric.confirmation_rate * 100) / 100 + "%"}
-                                          className={classes.chip}/>
+                                    <Chip
+                                        label={"Conf. Rate " + Math.floor(last_metric.confirmation_rate * 100) / 100 + "%"}
+                                        className={classes.chip}/>
                                 </Tooltip>
                                 <Tooltip id="tooltip-icon" classes={{popper: classes.tooltip}}
 

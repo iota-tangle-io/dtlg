@@ -13,6 +13,7 @@ let MsgType = {
     CHANGE_POW: 6,
     CHANGE_TAG: 7,
     CHANGE_ADDRESS: 8,
+    CHANGE_DEPTH: 9,
 };
 
 class StateMsg {
@@ -21,6 +22,7 @@ class StateMsg {
     pow: string;
     tag: string;
     address: string;
+    depth: number;
 }
 
 class WsMsg {
@@ -105,6 +107,10 @@ export class SpammerStore {
     @observable address: string = "";
     @observable address_updated: boolean = false;
     @observable updating_address: boolean = false;
+
+    @observable depth: number = 3;
+    @observable depth_updated: boolean = false;
+    @observable updating_depth: boolean = false;
 
     @observable pow: string = "";
     @observable updating_pow: boolean = false;
@@ -206,10 +212,20 @@ export class SpammerStore {
                             this.address = stateMsg.address;
                         }
 
+                        if (this.previous_state.depth !== stateMsg.depth) {
+                            this.disable_controls = false;
+                            this.updating_depth= false;
+                            if (this.previous_state.depth) {
+                                this.depth_updated = true;
+                            }
+                            this.depth = stateMsg.depth;
+                        }
+
                         if (!this.node && stateMsg.node && !this.first_node_update_done) {
                             this.node = stateMsg.node;
                             this.tag = stateMsg.tag;
                             this.address = stateMsg.address;
+                            this.depth = stateMsg.depth;
                             this.first_node_update_done = true;
                         }
 
@@ -324,6 +340,28 @@ export class SpammerStore {
         this.updating_tag = true;
         this.ws.send(JSON.stringify(msg));
     }
+
+    @action
+    changeDepth(depth: number) {
+        this.depth_updated = false;
+        if(depth <= 0) {
+            return;
+        }
+        this.depth = depth;
+    }
+
+    @action
+    updateDepth() {
+        if (!this.connected) return;
+        let msg = new WsMsg();
+        msg.msg_type = MsgType.CHANGE_DEPTH;
+        msg.data = this.depth;
+        if (this.previous_state.depth === this.depth) return;
+        this.disable_controls = true;
+        this.updating_depth = true;
+        this.ws.send(JSON.stringify(msg));
+    }
+
 
     @action
     changeAddress(address: string) {

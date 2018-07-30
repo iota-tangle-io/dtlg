@@ -27,6 +27,7 @@ type StatusMsg struct {
 	PoW     string `json:"pow"`
 	Tag     string `json:"tag"`
 	Address string `json:"address"`
+	Depth   int    `json:"depth"`
 }
 
 type SpammerCtrl struct {
@@ -44,6 +45,7 @@ type SpammerCtrl struct {
 	powType  string
 	tag      string
 	address  string
+	depth    int
 	logger   log15.Logger
 	database *spamalot.Database
 }
@@ -60,14 +62,24 @@ func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
 	} else {
 		tag = ctrl.tag
 	}
+	ctrl.logger.Info(fmt.Sprintf("using tag %s", tag))
 
 	if len(ctrl.address) != 0 {
 		address = ctrl.address
 	}
+	ctrl.logger.Info(fmt.Sprintf("using address %s", address))
 
 	if ctrl.database != nil {
 		ctrl.database.Close()
 	}
+
+	var depth int
+	if ctrl.depth != 0 {
+		depth = ctrl.depth
+	} else {
+		depth = giota.Depth
+	}
+	ctrl.logger.Info(fmt.Sprintf("using depth %d", depth))
 
 	db, err := bolt.Open("dtlg.db", 0600, nil)
 	if err != nil {
@@ -78,7 +90,7 @@ func (ctrl *SpammerCtrl) createSpammer() *spamalot.Spammer {
 	powFunc := giota.GetAvailablePoWFuncs()[ctrl.powType]
 	spammer, _ := spamalot.New(
 		spamalot.WithMWM(int64(14)),
-		spamalot.WithDepth(giota.Depth),
+		spamalot.WithDepth(int64(depth)),
 		spamalot.ToAddress(address),
 		spamalot.WithTag(tag),
 		spamalot.ToAddress(address),
@@ -105,6 +117,7 @@ func (ctrl *SpammerCtrl) Init() error {
 		return err
 	}
 	ctrl.logger = l
+	ctrl.depth = giota.Depth
 
 	powType, _ := giota.GetBestPoW()
 	availablePoWs := giota.GetAvailablePoWFuncs()
@@ -179,6 +192,7 @@ func (ctrl *SpammerCtrl) State() *StatusMsg {
 	msg.PoW = ctrl.powType
 	msg.Tag = ctrl.tag
 	msg.Address = ctrl.address
+	msg.Depth = ctrl.depth
 	return msg
 }
 
@@ -219,6 +233,17 @@ func (ctrl *SpammerCtrl) ChangeAddress(address string) {
 	}
 
 	ctrl.address = address
+	ctrl.spammer = ctrl.createSpammer()
+	if wasRunning {
+		go ctrl.spammer.Start()
+		<-time.After(time.Duration(1) * time.Second)
+	}
+}
+
+func (ctrl *SpammerCtrl) ChangeDepth(depth int) {
+	wasRunning := ctrl.spammer.IsRunning()
+	ctrl.Stop()
+	ctrl.depth = depth
 	ctrl.spammer = ctrl.createSpammer()
 	if wasRunning {
 		go ctrl.spammer.Start()
